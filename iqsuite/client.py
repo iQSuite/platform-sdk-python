@@ -80,7 +80,7 @@ class IQSuiteClient:
         data = self._handle_response(response)
         return [Index(**index) for index in data]
     
-    def get_documents(self, index_id: str) -> List<Document]: # type: ignore
+    def get_documents(self, index_id: str) -> List<Document> # type: ignore
         """
         Get all documents from an index
         
