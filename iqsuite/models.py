@@ -12,19 +12,28 @@ class User(BaseModel):
 
 class Index(BaseModel):
     id: str
-    name: Optional[str]
-    created_at: datetime
-    document_count: Optional[int]
+    name: Optional[str] = None
+    created_at: Optional[datetime] = None
+    document_count: Optional[int] = None
+    
+    class Config:
+        extra = 'allow'
 
 class Document(BaseModel):
     id: str
-    filename: str
-    created_at: datetime
-    index_id: str
+    filename: Optional[str] = None
+    created_at: Optional[datetime] = None
+    index_id: Optional[str] = None
+    
+    class Config:
+        extra = 'allow'
 
 class TaskStatus(BaseModel):
-    id: str
     status: str
-    progress: Optional[float]
-    created_at: datetime
-    completed_at: Optional[datetime]
+    task_id: Optional[str] = None
+    progress: Optional[float] = None
+    created_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    
+    class Config:
+        extra = 'allow'

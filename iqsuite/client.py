@@ -1,9 +1,9 @@
-import warnings
-import urllib3
 import requests
-from typing import List, Dict, Any, BinaryIO
+from typing import Optional, List, Dict, Any, BinaryIO
 from .exceptions import AuthenticationError, APIError
 from .models import User, Index, Document, TaskStatus
+import warnings
+import urllib3
 
 class IQSuiteClient:
     """
@@ -13,6 +13,8 @@ class IQSuiteClient:
         api_key (str): Your IQSuite API key
         base_url (str, optional): Base URL for the API. Defaults to production URL.
     """
+    
+
     
     def __init__(
         self, 
@@ -40,47 +42,69 @@ class IQSuiteClient:
         self.session.verify = verify_ssl
         
         if not verify_ssl and suppress_warnings:
-            # Suppress only the unverified HTTPS request warning
-            warnings.filterwarnings(
-                'ignore', 
-                category=urllib3.exceptions.InsecureRequestWarning
-            )
+            warnings.filterwarnings('ignore', category=urllib3.exceptions.InsecureRequestWarning)
             
         self.session.headers.update({
             'Authorization': f'Bearer {api_key}',
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         })
-        
+
     def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
         """Handle API response and raise appropriate exceptions"""
         try:
             response.raise_for_status()
-            return response.json()
+            try:
+                data = response.json()
+            except ValueError:
+                raise APIError("Invalid JSON response from API")
+            
+            if isinstance(data, dict) and data.get('error'):
+                raise APIError(
+                    f"API error: {data['error']}",
+                    status_code=response.status_code,
+                    response=response
+                )
+            
+            if isinstance(data, dict) and 'data' in data:
+                return data['data']
+                
+            return data
+            
         except requests.exceptions.HTTPError as e:
             if response.status_code == 401:
-                raise AuthenticationError("Invalid API key") from e
+                raise AuthenticationError("Invalid API key")
+            elif response.status_code == 422:
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get('message', str(e))
+                    raise APIError(
+                        f"Validation error: {error_message}",
+                        status_code=response.status_code,
+                        response=response
+                    )
+                except ValueError:
+                    pass
+            
             raise APIError(
                 f"HTTP {response.status_code} error: {str(e)}",
                 status_code=response.status_code,
                 response=response
-            ) from e
-        except ValueError:
-            raise APIError("Invalid JSON response from API")
-    
+            )
+
     def get_user(self) -> User:
         """Get current user information"""
         response = self.session.get(f"{self.base_url}/user")
         data = self._handle_response(response)
         return User(**data)
-    
+
     def list_indexes(self) -> List[Index]:
         """List all available indexes"""
         response = self.session.get(f"{self.base_url}/index")
         data = self._handle_response(response)
         return [Index(**index) for index in data]
-    
-    def get_documents(self, index_id: str) -> List[Document]:  # type: ignore
+
+    def get_documents(self, index_id: str) -> List[Document]:
         """
         Get all documents from an index
         
@@ -93,7 +117,7 @@ class IQSuiteClient:
         )
         data = self._handle_response(response)
         return [Document(**doc) for doc in data]
-    
+
     def create_index(self, document: BinaryIO, filename: str) -> TaskStatus:
         """
         Create a new index with an initial document
@@ -102,16 +126,22 @@ class IQSuiteClient:
             document (BinaryIO): File object of the document
             filename (str): Name of the file
         """
-        files = {
-            'document': (filename, document, 'application/pdf')
-        }
-        response = self.session.post(
-            f"{self.base_url}/index/create",
-            files=files
-        )
-        data = self._handle_response(response)
-        return TaskStatus(**data)
-    
+        original_headers = self.session.headers.copy()
+        self.session.headers.pop('Content-Type', None)
+        
+        try:
+            files = {
+                'document': (filename, document, 'application/pdf')
+            }
+            response = self.session.post(
+                f"{self.base_url}/index/create",
+                files=files
+            )
+            data = self._handle_response(response)
+            return TaskStatus(**data)
+        finally:
+            self.session.headers = original_headers
+
     def add_document(self, index_id: str, document: BinaryIO, filename: str) -> TaskStatus:
         """
         Add a document to an existing index
@@ -131,7 +161,7 @@ class IQSuiteClient:
         )
         data = self._handle_response(response)
         return TaskStatus(**data)
-    
+
     def get_task_status(self, task_id: str) -> TaskStatus:
         """
         Check the status of a task
@@ -144,7 +174,7 @@ class IQSuiteClient:
         )
         data = self._handle_response(response)
         return TaskStatus(**data)
-    
+
     def chat(self, index_id: str, query: str) -> Dict[str, Any]:
         """
         Chat with an index
@@ -161,7 +191,7 @@ class IQSuiteClient:
             }
         )
         return self._handle_response(response)
-    
+
     def search(self, index_id: str, query: str) -> Dict[str, Any]:
         """
         Perform hybrid search on an index
@@ -178,7 +208,7 @@ class IQSuiteClient:
             }
         )
         return self._handle_response(response)
-    
+
     def delete_document(self, index_id: str, document_id: str) -> Dict[str, Any]:
         """
         Delete a document from an index
