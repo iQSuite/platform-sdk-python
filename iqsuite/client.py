@@ -1,7 +1,7 @@
 import requests
 from typing import List, Dict, Any, BinaryIO
 from .exceptions import AuthenticationError, APIError
-from .models import TaskResponse, User, Index, Document, TaskStatus
+from .models import DocumentListResponse, TaskResponse, User, Index, Document, TaskStatus
 import warnings
 import urllib3
 
@@ -107,18 +107,22 @@ class IQSuiteClient:
         data = self._handle_response(response)
         return [Index(**index) for index in data]
 
-    def get_documents(self, index_id: str) -> List[Document]:
+    def get_documents(self, index_id: str) -> DocumentListResponse:
         """
         Get all documents from an index
-
+        
         Args:
             index_id (str): ID of the index
+            
+        Returns:
+            DocumentListResponse: Contains list of documents and index information
         """
         response = self.session.get(
-            f"{self.base_url}/index/get-all-documents", params={"index": index_id}
+            f"{self.base_url}/index/get-all-documents",
+            params={'index': index_id}
         )
         data = self._handle_response(response)
-        return [Document(**doc) for doc in data]
+        return DocumentListResponse(**data)
 
     def create_index(self, document: BinaryIO, filename: str) -> TaskResponse:
         """

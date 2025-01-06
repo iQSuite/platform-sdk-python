@@ -20,12 +20,18 @@ class Index(BaseModel):
         extra = 'allow'
 
 class Document(BaseModel):
-    """Model for document response"""
-    filename: Optional[str] = None
-    id: Optional[str] = None
-    index_id: Optional[str] = None
+    """Model for document information"""
+    id: str
     created_at: Optional[datetime] = None
-    path: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        extra = 'allow'
+
+class DocumentListResponse(BaseModel):
+    """Model for document list response"""
+    documents: List[Document]
+    index: str
     
     class Config:
         extra = 'allow'
