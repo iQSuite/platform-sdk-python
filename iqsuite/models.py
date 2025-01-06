@@ -31,9 +31,16 @@ class Document(BaseModel):
 class TaskStatus(BaseModel):
     status: str
     task_id: Optional[str] = None
-    progress: Optional[float] = None
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    
+    class Config:
+        extra = 'allow'
+
+
+class TaskResponse(BaseModel):
+    """Model for task creation response"""
+    message: str
+    task_id: str
+    check_status: str
     
     class Config:
         extra = 'allow'
