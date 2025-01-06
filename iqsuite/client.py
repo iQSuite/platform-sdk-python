@@ -1,7 +1,7 @@
 import warnings
 import urllib3
 import requests
-from typing import Optional, List, Dict, Any, BinaryIO
+from typing import List, Dict, Any, BinaryIO
 from .exceptions import AuthenticationError, APIError
 from .models import User, Index, Document, TaskStatus
 
@@ -80,7 +80,7 @@ class IQSuiteClient:
         data = self._handle_response(response)
         return [Index(**index) for index in data]
     
-    def get_documents(self, index_id: str) -> List<Document> # type: ignore
+    def get_documents(self, index_id: str) -> List[Document]:  # type: ignore
         """
         Get all documents from an index
         
