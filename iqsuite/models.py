@@ -3,9 +3,12 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class User(BaseModel):
-    id: str
-    name: Optional[str]
-    email: Optional[str]
+    id: int
+    name: Optional[str] = None
+    email: Optional[str] = None
+    
+    class Config:
+        extra = 'allow'
 
 class Index(BaseModel):
     id: str
