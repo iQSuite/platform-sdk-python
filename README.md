@@ -1,43 +1,55 @@
 # IQSuite Python SDK
 
-A Python SDK for interacting with the IQSuite API. This library provides a simple and intuitive way to use IQSuite's document indexing and search capabilities.
+A Python SDK for interacting with the IQSuite API.
 
 ## Installation
 
-You can install the package in several ways:
-
-### From PyPI
 ```bash
-pip install iqsuite
+pip install iqsuite  # From PyPI
+# or
+pip install git+https://github.com/blue-hex/iqsuite-platform-py-sdk.git  # From GitHub
 ```
 
-### From GitHub
-```bash
-pip install git+https://github.com/blue-hex/iqsuite-platform-py-sdk.git
-```
-
-Or add to your requirements.txt:
-```
-git+https://github.com/blue-hex/iqsuite-platform-py-sdk.git
-```
-
-## Quick Start
+## Quick Examples
 
 ```python
 from iqsuite import IQSuiteClient
 
-# Initialize the client
-client = IQSuiteClient('your-api-key')
+# Initialize (for development/testing)
+client = IQSuiteClient('your-api-key', verify_ssl=False)
 
-# For development/testing with self-signed certificates
-client = IQSuiteClient(
-    api_key='your-api-key',
-    verify_ssl=False,  # Only use in development
-    verbose=True       # Optional: to show warnings (defaults to False)
-)
+# Get user info
+user = client.get_user()
+
+# List all indexes
+indexes = client.list_indexes()
+
+# Create new index
+with open('document.pdf', 'rb') as f:
+    task = client.create_index(f, 'document.pdf')
+    print(f"Task ID: {task.task_id}")
+
+# Check task status
+status = client.get_task_status(task.task_id)
+
+# Add document to index
+with open('new_document.pdf', 'rb') as f:
+    task = client.add_document(index_id, f, 'new_document.pdf')
+
+# Get all documents in an index
+documents = client.get_documents(index_id)
+
+# Chat with documents
+response = client.chat(index_id, "What is machine learning?")
+
+# Search documents
+results = client.search(index_id, "neural networks")
+
+# Delete a document
+client.delete_document(index_id, document_id)
 ```
 
-### Basic Operations
+## Detailed Sample Snippets
 
 ```python
 # Get user information
@@ -81,48 +93,34 @@ with open('new_document.pdf', 'rb') as f:
     print(f"Task status: {status.status}")
 ```
 
-### Complete Example with Error Handling
+### Working with Documents and Search
 
 ```python
-from iqsuite import IQSuiteClient, AuthenticationError, APIError
+# Get all documents in an index
+documents = client.get_documents(index_id)
+for doc in documents:
+    print(f"Document: {doc.filename}")
 
-# Initialize client
-client = IQSuiteClient('your-api-key', verify_ssl=False, suppress_warnings=True)
+# Chat with your documents
+response = client.chat(
+    index_id=index_id,
+    query="What is machine learning?"
+)
+print(f"Chat response: {response}")
 
-try:
-    # List available indexes
-    indexes = client.list_indexes()
-    if indexes:
-        # Get the first index ID
-        index_id = indexes[0].id
-        print(f"Found index: {index_id}")
+# Search through documents
+results = client.search(
+    index_id=index_id,
+    query="neural networks"
+)
+print(f"Search results: {results}")
 
-        # Add new document to this index
-        with open('document.pdf', 'rb') as f:
-            task = client.add_document(index_id, f, 'document.pdf')
-            print(f"Task ID: {task.task_id}")
-            print(f"Message: {task.message}")
-
-            # Check task status
-            status = client.get_task_status(task.task_id)
-            print(f"Task status: {status.status}")
-
-        # Chat with index
-        response = client.chat(index_id, "What is OpenVINO?")
-        print(f"Chat response: {response}")
-
-        # Search in index
-        results = client.search(index_id, "insurance")
-        print(f"Search results: {results}")
-
-except AuthenticationError as e:
-    print(f"Authentication error: {e}")
-except APIError as e:
-    print(f"API error: {e}")
-    if hasattr(e, 'status_code'):
-        print(f"Status code: {e.status_code}")
+# Delete a document
+client.delete_document(
+    index_id=index_id,
+    document_id="document-id-to-delete"
+)
 ```
-
 
 ## Development Setup
 
@@ -146,7 +144,6 @@ pip install -e ".[dev]"
 ## Contributing
 
 We welcome contributions! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
 
 ## Support
 
