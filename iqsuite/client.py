@@ -20,7 +20,7 @@ class IQSuiteClient:
         api_key: str,
         base_url: str = "https://iqsuite.test/api/v1",
         verify_ssl: bool = True,
-        verbose: bool = True,
+        verbose: bool = False,
     ):
         """
         Initialize the IQSuite client.
@@ -40,7 +40,7 @@ class IQSuiteClient:
         self.session = requests.Session()
         self.session.verify = verify_ssl
 
-        if not verify_ssl and verbose:
+        if not verify_ssl and not verbose:
             warnings.filterwarnings(
                 "ignore", category=urllib3.exceptions.InsecureRequestWarning
             )
