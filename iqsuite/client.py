@@ -12,10 +12,26 @@ class IQSuiteClient:
         base_url (str, optional): Base URL for the API. Defaults to production URL.
     """
     
-    def __init__(self, api_key: str, base_url: str = "https://iqsuite.test/api/v1"):
+    def __init__(
+        self, 
+        api_key: str, 
+        base_url: str = "https://iqsuite.test/api/v1",
+        verify_ssl: bool = True
+    ):
+        """
+        Initialize the IQSuite client.
+        
+        Args:
+            api_key (str): Your IQSuite API key
+            base_url (str, optional): Base URL for the API. Defaults to production URL.
+            verify_ssl (bool, optional): Whether to verify SSL certificates. 
+                                       Set to False for testing with self-signed certificates.
+                                       Default is True.
+        """
         self.api_key = api_key
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
+        self.session.verify = verify_ssl
         self.session.headers.update({
             'Authorization': f'Bearer {api_key}',
             'Accept': 'application/json',
