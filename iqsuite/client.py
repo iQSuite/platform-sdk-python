@@ -18,7 +18,7 @@ class IQSuiteClient:
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://iqsuite.cooliocorp.com/api/v1",
+        base_url: str = "https://staging.iqsuite.ai/api/v1",
         verify_ssl: bool = True,
         verbose: bool = False,
     ):
