@@ -1,6 +1,8 @@
 import requests
 import os
 from typing import List, Dict, Any, BinaryIO
+
+from iqsuite.utils import get_mime_type
 from .exceptions import AuthenticationError, APIError
 from .models import (
     DocumentListResponse,
@@ -92,14 +94,30 @@ class IQSuiteClient:
         return DocumentListResponse(**data)
 
     def create_index(self, document: BinaryIO, filename: str) -> TaskResponse:
+        mime_type = get_mime_type(filename)
+
+        supported_types = {
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        }
+        
+        if mime_type not in supported_types:
+            raise ValueError(
+                f"Unsupported file type: {mime_type}. "
+                "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
+            )
+
         original_headers = self.session.headers.copy()
         self.session.headers.pop("Content-Type", None)
 
         try:
-            files = {"document": (filename, document, "application/pdf")}
+            files = {"document": (filename, document, mime_type)}
             response = self.session.post(f"{self.base_url}/index/create", files=files)
-            data = self._handle_response(response)
-            return TaskResponse(**data)
+            response_data = self._handle_response(response)
+            return TaskResponse(data=response_data['data'])
 
         finally:
             self.session.headers = original_headers
@@ -107,18 +125,36 @@ class IQSuiteClient:
     def add_document(
         self, index_id: str, document: BinaryIO, filename: str
     ) -> TaskResponse:
+        mime_type = get_mime_type(filename)
+
+        supported_types = {
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/png',
+            'image/tiff',
+            'image/bmp'
+        }
+        
+        if mime_type not in supported_types:
+            raise ValueError(
+                f"Unsupported file type: {mime_type}. "
+                "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
+            )
+
         original_headers = self.session.headers.copy()
         self.session.headers.pop("Content-Type", None)
 
         try:
-            files = {"document": (filename, document, "application/pdf")}
+            files = {"document": (filename, document, mime_type)}
             response = self.session.post(
                 f"{self.base_url}/index/add-document",
                 data={"index": index_id},
                 files=files,
             )
-            data = self._handle_response(response)
-            return TaskResponse(**data)
+            response_data = self._handle_response(response)
+            return TaskResponse(data=response_data['data'])
 
         finally:
             self.session.headers = original_headers
