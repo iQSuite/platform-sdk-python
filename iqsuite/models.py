@@ -33,11 +33,20 @@ class Document(BaseModel):
         extra = "allow"
 
 
-class DocumentListResponse(BaseModel):
-    """Model for document list response"""
+class DocumentListData(BaseModel):
+    """Model for document list data"""
 
     documents: List[Document]
     index: str
+
+    class Config:
+        extra = "allow"
+
+
+class DocumentListResponse(BaseModel):
+    """Model for document list response wrapper"""
+
+    data: DocumentListData
 
     class Config:
         extra = "allow"

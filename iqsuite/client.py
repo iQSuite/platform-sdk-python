@@ -90,20 +90,20 @@ class IQSuiteClient:
         response = self.session.get(
             f"{self.base_url}/index/get-all-documents", params={"index": index_id}
         )
-        data = self._handle_response(response)
-        return DocumentListResponse(**data)
+        response_data = self._handle_response(response)
+        return DocumentListResponse(data=response_data["data"])
 
     def create_index(self, document: BinaryIO, filename: str) -> TaskResponse:
         mime_type = get_mime_type(filename)
 
         supported_types = {
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         }
-        
+
         if mime_type not in supported_types:
             raise ValueError(
                 f"Unsupported file type: {mime_type}. "
@@ -117,7 +117,7 @@ class IQSuiteClient:
             files = {"document": (filename, document, mime_type)}
             response = self.session.post(f"{self.base_url}/index/create", files=files)
             response_data = self._handle_response(response)
-            return TaskResponse(data=response_data['data'])
+            return TaskResponse(data=response_data["data"])
 
         finally:
             self.session.headers = original_headers
@@ -128,15 +128,15 @@ class IQSuiteClient:
         mime_type = get_mime_type(filename)
 
         supported_types = {
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'image/jpeg',
-            'image/png',
-            'image/tiff',
-            'image/bmp'
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "image/bmp",
         }
-        
+
         if mime_type not in supported_types:
             raise ValueError(
                 f"Unsupported file type: {mime_type}. "
@@ -154,7 +154,7 @@ class IQSuiteClient:
                 files=files,
             )
             response_data = self._handle_response(response)
-            return TaskResponse(data=response_data['data'])
+            return TaskResponse(data=response_data["data"])
 
         finally:
             self.session.headers = original_headers
