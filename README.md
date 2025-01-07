@@ -117,10 +117,10 @@ List all documents in a specific index.
 
 ```python
 try:
-    doc_list = client.get_documents('your-index-id')
-    for doc in doc_list.documents:
+    doc_list = client.get_documents('e070e718-5392-47a5-9938-e9c4d5b3ed2a')
+    for doc in doc_list.data.documents:
         print(f"Document ID: {doc.id}")
-        print(f"Created At: {doc.created_at}")
+    print(f"Index ID: {doc_list.data.index}")
 except APIError as e:
     print(f"Error: {e}")
 ```
