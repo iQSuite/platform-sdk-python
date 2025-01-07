@@ -117,7 +117,7 @@ List all documents in a specific index.
 
 ```python
 try:
-    doc_list = client.get_documents('e070e718-5392-47a5-9938-e9c4d5b3ed2a')
+    doc_list = client.get_documents('your_index_id')
     for doc in doc_list.data.documents:
         print(f"Document ID: {doc.id}")
     print(f"Index ID: {doc_list.data.index}")
