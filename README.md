@@ -12,231 +12,230 @@ The platform handles all the complexity of document processing, embedding genera
 
 ## Getting Started
 
-### 1. Sign Up and Get Access Token
+### Sign Up for API Key
 
 1. Visit [https://iqsuite.ai](https://iqsuite.ai)
 2. Click "Sign Up" and create your account
-3. After logging in, go to "API Keys" in your dashboard
-4. Click "Create New API Key"
-5. Copy your API key - you'll need this to use the SDK
+3. Go to "API Keys" in your dashboard
+4. Create a new API key
 
-### 2. Installation
+### Installation
 
-#### Production Installation (PyPI)
 ```bash
+# From PyPI
 pip install iqsuite
-```
 
-#### Development Installation (GitHub) (Only for internal testing)
-```bash
+# From GitHub (Only for internal testing)
 pip install git+https://github.com/blue-hex/iqsuite-platform-py-sdk.git
 ```
 
-### 3. Basic Setup
+### Basic Setup
 
 ```python
 from iqsuite import IQSuiteClient
+from iqsuite.exceptions import APIError, AuthenticationError
 
 client = IQSuiteClient('your-api-key')
 
-# Or use custom base URL via environment variable
-# IQSUITE_BASE_URL=https://custom.iqsuite.ai/api/v1
+# Optional: Set custom base URL via parameter (Only for internal testing)
+client = IQSuiteClient('your-api-key', base_url="https://staging.iqsuite.ai/api/v1")
 ```
 
-## Available APIs
+## API Reference
 
-The SDK provides two main types of functionality:
-
-1. Document-based RAG Indices
-   - Create indices from PDF, images and word documents
-   - Add/remove documents
-   - Chat in natural language
-   - Perform hybrid search accross documents
-   
-2. Instant RAG
-   - Create quick RAG systems from text content
-   - Useful for smaller content (max 8000 tokens ≈ 32,000 characters)
-   - Immediate availability (no processing time)
-
-### Document-based RAG APIs
-
-#### 1. Creating an Index
-
-First, create an index with an initial document:
+### Get Current User
+Retrieve information about the authenticated user.
 
 ```python
-# Create index with initial document
 try:
-    with open('document.pdf', 'rb') as f:
-        task = client.create_index(f, 'document.pdf')
-        print(f"Task ID: {task.task_id}")
-        print(f"Status URL: {task.check_status}")
-
-    # Poll for task completion (Optional)
-    while True:
-        status = client.get_task_status(task.task_id)
-        print(f"Status: {status.status}")
-        if status.status == 'completed':
-            break
-        elif status.status == 'failed':
-            raise Exception("Index creation failed")
-        time.sleep(5)  # Wait 5 seconds before checking again
-
+    user = client.get_user()
+    print(f"User ID: {user.id}")
+    print(f"Email: {user.email}")
+except AuthenticationError:
+    print("Invalid API key")
 except APIError as e:
     print(f"API Error: {e}")
-except Exception as e:
+```
+
+
+### Create Index
+Create a new index with an initial document. Supports PDF, DOC(X), and PPT(X) files.
+
+```python
+import time
+
+try:
+    with open('document.pdf', 'rb') as f:
+        response = client.create_index(f, 'document.pdf')
+        
+    print(f"Task ID: {response.data.task_id}")
+    print(f"Status URL: {response.data.check_status}")
+    
+    # Check task status
+    while True:
+        status = client.get_task_status(response.data.task_id)
+        if status.status == 'completed':
+            break
+        time.sleep(5)
+        
+except APIError as e:
     print(f"Error: {e}")
 ```
 
-⚠️ Important: Document processing takes time. Always check task status before proceeding.
+### Add Document to Index
+Add a new document to an existing index.
 
-#### 2. Managing Documents
+```python
+try:
+    with open('new_document.docx', 'rb') as f:
+        response = client.add_document(
+            index_id='your-index-id',
+            document=f,
+            filename='new_document.docx'
+        )
+    print(f"Task ID: {response.data.task_id}")
+    
+except APIError as e:
+    print(f"Error: {e}")
+```
 
-List all available indices:
+### List All Indices
+Get a list of all available indices.
+
 ```python
 try:
     indices = client.list_indexes()
     for index in indices:
         print(f"Index ID: {index.id}")
-        print(f"Name: {index.name}")
         print(f"Document Count: {index.document_count}")
 except APIError as e:
-    print(f"Error listing indices: {e}")
+    print(f"Error: {e}")
 ```
 
-Add more documents to an existing index:
-```python
-try:
-    with open('new_document.pdf', 'rb') as f:
-        task = client.add_document(index_id, f, 'new_document.pdf')
-        
-    # Poll for completion
-    while True:
-        status = client.get_task_status(task.task_id)
-        if status.status == 'completed':
-            print("Document added successfully")
-            break
-        elif status.status == 'failed':
-            raise Exception("Document addition failed")
-        time.sleep(5)
-        
-except APIError as e:
-    print(f"Error adding document: {e}")
-```
+### Get Documents in Index
+List all documents in a specific index.
 
-List documents in an index:
 ```python
 try:
-    doc_list = client.get_documents(index_id)
+    doc_list = client.get_documents('your-index-id')
     for doc in doc_list.documents:
         print(f"Document ID: {doc.id}")
-        print(f"Created: {doc.created_at}")
+        print(f"Created At: {doc.created_at}")
 except APIError as e:
-    print(f"Error listing documents: {e}")
+    print(f"Error: {e}")
 ```
 
-Delete a document:
+### Delete Document from Index
+Remove a document from an index.
+
 ```python
 try:
-    result = client.delete_document(index_id, document_id)
+    result = client.delete_document(
+        index_id='your-index-id',
+        document_id='document-id-to-delete'
+    )
     print("Document deleted successfully")
 except APIError as e:
-    print(f"Error deleting document: {e}")
+    print(f"Error: {e}")
 ```
 
-#### 3. Chatting and Searching
 
-Chat with your documents:
+### Chat with Documents
+Ask questions about your documents in natural language.
+
 ```python
 try:
     response = client.chat(
-        index_id=index_id,
-        query="What is the main topic of these documents?"
+        index_id='your-index-id',
+        query="What are the main points discussed?"
     )
     print(f"Response: {response}")
 except APIError as e:
-    print(f"Chat error: {e}")
+    print(f"Error: {e}")
 ```
 
-Perform hybrid search:
+### Search Documents
+Perform hybrid semantic search across your documents.
+
 ```python
 try:
     results = client.search(
-        index_id=index_id,
+        index_id='your-index-id',
         query="neural networks"
     )
     print(f"Search results: {results}")
 except APIError as e:
-    print(f"Search error: {e}")
+    print(f"Error: {e}")
 ```
 
-### Instant RAG APIs
+### Instant RAG
 
-Instant RAG allows you to create quick RAG systems from text content without document processing delays.
-
-#### 1. Creating Instant RAG
+#### Create Instant RAG
+Create a quick RAG system from text content (max 8000 tokens).
 
 ```python
 try:
-    # Create instant RAG from text
-    context = """Your text content here... (max 8000 tokens)"""
-    result = client.create_instant_rag(context)
+    context = "Your text content here... (max 8000 tokens)"
+    response = client.create_instant_rag(context)
     
-    print(f"Instant RAG ID: {result.id}")
-    print(f"Query URL: {result.query_url}")
-    
+    print(f"Instant RAG ID: {response.data.id}")
+    print(f"Query URL: {response.data.query_url}")
 except APIError as e:
-    print(f"Error creating instant RAG: {e}")
+    print(f"Error: {e}")
 ```
 
-#### 2. Querying Instant RAG
+#### Query Instant RAG
+Ask questions about your instant RAG content.
 
 ```python
 try:
-    # Query the instant RAG
     response = client.query_instant_rag(
-        index_id=result.id,
+        index_id='your-instant-rag-id',
         query="What is this text about?"
     )
     
     print(f"Response: {response.data.retrieval_response}")
-    print(f"Tokens used: {response.data.total_tokens}")
-    print(f"Credits cost: {response.data.credits_cost}")
-    
+    print(f"Tokens Used: {response.data.total_tokens}")
+    print(f"Credits Cost: {response.data.credits_cost}")
 except APIError as e:
-    print(f"Error querying instant RAG: {e}")
+    print(f"Error: {e}")
 ```
+
+### Task Status
+
+#### Check Task Status
+Monitor the status of document processing tasks.
+
+```python
+try:
+    status = client.get_task_status('your-task-id')
+    print(f"Status: {status.status}")
+except APIError as e:
+    print(f"Error: {e}")
+
+# Poll for task completion (Optional)
+while True:
+    status = client.get_task_status('your-task-id')
+    print(f"Status: {status.status}")
+    if status.status == 'completed':
+        break
+    elif status.status == 'failed':
+        raise Exception("Index creation failed")
+    time.sleep(5)  # Wait 5 seconds before checking again
+```
+
+## Supported Document Types
+
+The following document types are supported:
+- PDF (.pdf)
+- Microsoft Word (.doc, .docx)
+- Microsoft PowerPoint (.ppt, .pptx)
 
 ## Error Handling
 
-The SDK uses custom exceptions for better error handling:
-
-- `AuthenticationError`: Raised when API key is invalid
-- `APIError`: Raised for other API-related errors
-
-Always wrap API calls in try-except blocks to handle potential errors gracefully.
-
-## Best Practices
-
-1. **Document Processing**
-   - Always implement polling for task status
-   - Use appropriate timeouts for your use case
-   - Handle failure states appropriately
-
-2. **Resource Management**
-   - Properly close file handles using `with` statements
-   - Delete unused indices and documents
-   - Monitor token usage for instant RAG
-
-3. **Error Handling**
-   - Implement proper error handling for all API calls
-   - Handle network errors and timeouts
-   - Log errors appropriately in production
-
-4. **Rate Limiting**
-   - Implement appropriate delays between API calls
-   - Handle rate limit errors gracefully
-   - Consider implementing exponential backoff for retries
+The SDK uses two main exception types:
+- `AuthenticationError`: Invalid API key
+- `APIError`: Other API-related errors
 
 ## Need Help?
 
