@@ -1,7 +1,5 @@
 # IQSuite Python SDK
 
-## What is IQ Suite Platform?
-
 IQ Suite Platform is a powerful Retrieval Augmented Generation (RAG) and Hybrid Search service that allows you to:
 
 - Create searchable document indices from PDF, images and word documents
