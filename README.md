@@ -71,7 +71,7 @@ try:
     print(f"Task ID: {response.data.task_id}")
     print(f"Status URL: {response.data.check_status}")
     
-    # Check task status
+    # Check task status (Optional Step)
     while True:
         status = client.get_task_status(response.data.task_id)
         if status.status == 'completed':
