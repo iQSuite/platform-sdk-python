@@ -1,50 +1,30 @@
 import requests
+import os
 from typing import List, Dict, Any, BinaryIO
 from .exceptions import AuthenticationError, APIError
-from .models import DocumentListResponse, TaskResponse, User, Index, Document, TaskStatus
-import warnings
-import urllib3
+from .models import (
+    DocumentListResponse,
+    TaskResponse,
+    User,
+    Index,
+    TaskStatus,
+    InstantRagResponse,
+    InstantRagQueryResponse,
+)
 
 
 class IQSuiteClient:
-    """
-    Python client for the IQSuite API.
-
-    Args:
-        api_key (str): Your IQSuite API key
-        base_url (str, optional): Base URL for the API. Defaults to production URL.
-    """
-
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://staging.iqsuite.ai/api/v1",
-        verify_ssl: bool = True,
-        verbose: bool = False,
+        base_url: str = None,
     ):
-        """
-        Initialize the IQSuite client.
-
-        Args:
-            api_key (str): Your IQSuite API key
-            base_url (str, optional): Base URL for the API. Defaults to production URL.
-            verify_ssl (bool, optional): Whether to verify SSL certificates.
-                                         Set to False for testing with self-signed certificates.
-                                         Default is True.
-            verbose (bool, optional): Whether to suppress SSL verification warnings.
-                                               Only applicable when verify_ssl is False.
-                                               Default is False.
-        """
         self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        self.base_url = (
+            base_url or os.getenv("IQSUITE_BASE_URL") or "https://iqsuite.ai/api/v1"
+        ).rstrip("/")
+
         self.session = requests.Session()
-        self.session.verify = verify_ssl
-
-        if not verify_ssl and not verbose:
-            warnings.filterwarnings(
-                "ignore", category=urllib3.exceptions.InsecureRequestWarning
-            )
-
         self.session.headers.update(
             {
                 "Authorization": f"Bearer {api_key}",
@@ -54,7 +34,6 @@ class IQSuiteClient:
         )
 
     def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
-        """Handle API response and raise appropriate exceptions"""
         try:
             response.raise_for_status()
             try:
@@ -70,7 +49,7 @@ class IQSuiteClient:
                 )
 
             if isinstance(data, dict) and "data" in data:
-                return data["data"]
+                return data
 
             return data
 
@@ -96,45 +75,23 @@ class IQSuiteClient:
             )
 
     def get_user(self) -> User:
-        """Get current user information"""
         response = self.session.get(f"{self.base_url}/user")
         data = self._handle_response(response)
         return User(**data)
 
     def list_indexes(self) -> List[Index]:
-        """List all available indexes"""
         response = self.session.get(f"{self.base_url}/index")
         data = self._handle_response(response)
         return [Index(**index) for index in data]
 
     def get_documents(self, index_id: str) -> DocumentListResponse:
-        """
-        Get all documents from an index
-        
-        Args:
-            index_id (str): ID of the index
-            
-        Returns:
-            DocumentListResponse: Contains list of documents and index information
-        """
         response = self.session.get(
-            f"{self.base_url}/index/get-all-documents",
-            params={'index': index_id}
+            f"{self.base_url}/index/get-all-documents", params={"index": index_id}
         )
         data = self._handle_response(response)
         return DocumentListResponse(**data)
 
     def create_index(self, document: BinaryIO, filename: str) -> TaskResponse:
-        """
-        Create a new index with an initial document
-
-        Args:
-            document (BinaryIO): File object of the document
-            filename (str): Name of the file
-
-        Returns:
-            TaskResponse: Object containing task_id, message and check_status URL
-        """
         original_headers = self.session.headers.copy()
         self.session.headers.pop("Content-Type", None)
 
@@ -150,17 +107,6 @@ class IQSuiteClient:
     def add_document(
         self, index_id: str, document: BinaryIO, filename: str
     ) -> TaskResponse:
-        """
-        Add a document to an existing index
-
-        Args:
-            index_id (str): ID of the index
-            document (BinaryIO): File object of the document
-            filename (str): Name of the file
-
-        Returns:
-            TaskResponse: Object containing task_id, message and check_status URL
-        """
         original_headers = self.session.headers.copy()
         self.session.headers.pop("Content-Type", None)
 
@@ -178,12 +124,6 @@ class IQSuiteClient:
             self.session.headers = original_headers
 
     def get_task_status(self, task_id: str) -> TaskStatus:
-        """
-        Check the status of a task
-
-        Args:
-            task_id (str): ID of the task
-        """
         response = self.session.get(
             f"{self.base_url}/create-index/task-status/{task_id}"
         )
@@ -191,41 +131,35 @@ class IQSuiteClient:
         return TaskStatus(**data)
 
     def chat(self, index_id: str, query: str) -> Dict[str, Any]:
-        """
-        Chat with an index
-
-        Args:
-            index_id (str): ID of the index
-            query (str): Query string
-        """
         response = self.session.post(
             f"{self.base_url}/index/retrieve", json={"index": index_id, "query": query}
         )
         return self._handle_response(response)
 
     def search(self, index_id: str, query: str) -> Dict[str, Any]:
-        """
-        Perform hybrid search on an index
-
-        Args:
-            index_id (str): ID of the index
-            query (str): Search query
-        """
         response = self.session.post(
             f"{self.base_url}/index/search", json={"index": index_id, "query": query}
         )
         return self._handle_response(response)
 
     def delete_document(self, index_id: str, document_id: str) -> Dict[str, Any]:
-        """
-        Delete a document from an index
-
-        Args:
-            index_id (str): ID of the index
-            document_id (str): ID of the document to delete
-        """
         response = self.session.post(
             f"{self.base_url}/index/delete-document",
             json={"index": index_id, "document": document_id},
         )
         return self._handle_response(response)
+
+    def create_instant_rag(self, context: str) -> InstantRagResponse:
+        response = self.session.post(
+            f"{self.base_url}/index/instant/create", json={"context": context}
+        )
+        data = self._handle_response(response)
+        return InstantRagResponse(**data)
+
+    def query_instant_rag(self, index_id: str, query: str) -> InstantRagQueryResponse:
+        response = self.session.post(
+            f"{self.base_url}/index/instant/query",
+            json={"index": index_id, "query": query},
+        )
+        data = self._handle_response(response)
+        return InstantRagQueryResponse(**data)

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime
 
 class User(BaseModel):
@@ -43,12 +43,38 @@ class TaskStatus(BaseModel):
     class Config:
         extra = 'allow'
 
-
 class TaskResponse(BaseModel):
     """Model for task creation response"""
     message: str
     task_id: str
     check_status: str
+    
+    class Config:
+        extra = 'allow'
+
+class InstantRagResponse(BaseModel):
+    """Model for instant RAG creation response"""
+    message: str
+    id: str
+    query_url: str
+    
+    class Config:
+        extra = 'allow'
+
+class InstantRagQueryData(BaseModel):
+    """Model for instant RAG query response data"""
+    uuid: str
+    query: str
+    retrieval_response: str
+    credits_cost: float
+    total_tokens: int
+    
+    class Config:
+        extra = 'allow'
+
+class InstantRagQueryResponse(BaseModel):
+    """Model for instant RAG query response"""
+    data: InstantRagQueryData
     
     class Config:
         extra = 'allow'
