@@ -84,8 +84,8 @@ try:
         response, status = client.create_index_and_poll(
             document=f,
             filename='document.pdf',
-            max_retries=5,  # Optional: Maximum number of polling attempts
-            poll_interval=5   # Optional: Seconds between polling attempts
+            max_retries=5,      #  Maximum number of polling attempts
+            poll_interval=20    #  Seconds between polling attempts
         )
 
     print(f"Task ID: {response.data.task_id}")
@@ -123,8 +123,8 @@ try:
             index_id='your-index-id',
             document=f,
             filename='new_document.docx',
-            max_retries=5,  # Optional: Maximum number of polling attempts
-            poll_interval=5   # Optional: Seconds between polling attempts
+            max_retries=5,      # Maximum number of polling attempts
+            poll_interval=20    # Seconds between polling attempts
         )
 
     print(f"Task ID: {response.data.task_id}")
