@@ -1,51 +1,48 @@
-# IQSuite Python SDK
+# iQSuite Python SDK
 
-IQ Suite Platform is a powerful Retrieval Augmented Generation (RAG) and Hybrid Search service that allows you to:
+iQ Suite Platform is a powerful Retrieval Augmented Generation as a service (RAGAAS) and Hybrid Search that allows you to:
 
-- Create searchable document indices from PDF, images and word documents
-- Perform hybrid search across your documents
-- Chat with your documents using natural language
-- Create instant RAG systems from text content
-- Build production-ready document Q&A systems
+- Create semantically and keyword-based searchable indices from unstructured sources such as PDF, Microsoft Word, PowerPoint and raw text chunks.
+- Quickly perform vector-based semantic retrieval augmented generation with precision and persistent performance.
+- Chat with your documents using natural language.
+- Instantly extract insights from raw unstructured text chunks, emails, domain-specific text data code.
+- Build production-ready document Q&A systems, natural-language-based analytics, key-value pair extractions, classifications, and etc.
 
-The platform handles all the complexity of document processing, embedding generation, and vector search, allowing you to focus on building your application.
+The platform handles all the complexity of document processing, embedding generation, contextualized chunking, reranking and vector search, allowing you to focus on building your application.
 
 ## Getting Started
 
-### Sign Up for API Key
+### Get API Key
 
-1. Visit [https://iqsuite.ai](https://iqsuite.ai)
-2. Click "Sign Up" and create your account
-3. Go to "API Keys" in your dashboard
-4. Create a new API key
+1. Visit [iQ Suite Platform](https://iqsuite.ai)
+2. Sign up with your emial or GitHub to create an account.
+3. Once logged in, click on "API Keys" nav menu item in the sidebar, fill in API key name and click `Create API Key` to create a new key.
+4. Copy the key and store it somewhere safe as **it'll not be shown again**.
 
 ### Installation
 
 ```bash
 # From PyPI
 pip install iqsuite
-
-# From GitHub (Only for internal testing)
-pip install git+https://github.com/blue-hex/iqsuite-platform-py-sdk.git
 ```
 
 ### Basic Setup
 
 ```python
+import os
 from iqsuite import IQSuiteClient
 from iqsuite.exceptions import APIError, AuthenticationError
 
-client = IQSuiteClient('your-api-key')
+os.env["IQSUITE_API_KEY"]
 
-# Optional: Set custom base URL via parameter (Only for internal testing)
-client = IQSuiteClient('your-api-key', base_url="https://staging.iqsuite.ai/api/v1")
+client = IQSuiteClient(os.env["IQSUITE_API_KEY"])
 ```
 
 ## API Reference
 
 ### Get Current User
 
-Retrieve information about the authenticated user.
+Retrieve information about the authenticated user. This is to ensure that you're successfully authenticated with iQ.
 
 ```python
 try:
@@ -60,11 +57,9 @@ except APIError as e:
 
 ### Create Index
 
-Create a new index with an initial document. Supports PDF, DOC(X), and PPT(X) files.
+Create a new index with an initial document. Supports pdf, doc, docx, ppt, and pptx files.
 
 ```python
-import time
-
 try:
     with open('document.pdf', 'rb') as f:
         response = client.create_index(f, 'document.pdf')
@@ -73,22 +68,28 @@ try:
 except APIError as e:
     print(f"Error: {e}")
 ```
+> [!IMPORTANT]
+> iQ's `create_index` method is an **asynchronous** process. Once submitted, iQ will respond with `task_id` and `check_status` URL to allow you to check the progress of the current indexing task. However, we recommend that you setup `webhooks` to ensure that your system is robust or maybe you can use our polling method `create_index_and_poll`, but this could create a blocking experience for your user, hence, dealer's choice!
+
+### Webhooks
+```
+```
 
 ### Create Index with Polling
 
-Create a new index with an initial document and wait for completion. This method handles the polling automatically.
+Create a new index with an initial document and wait for completion. This method handles the polling automatically and will return the `index_id` once the polling is completed.
 
 ```python
 try:
     with open('document.pdf', 'rb') as f:
         response, status = client.create_index_and_poll(
             document=f,
-            filename='document.pdf',
-            max_retries=5,      #  Maximum number of polling attempts
+            max_retries=6,      #  Maximum number of polling attempts
             poll_interval=20    #  Seconds between polling attempts
         )
 
     print(f"Task ID: {response.data.task_id}")
+    print(f"Index ID: {response.data.index_id}")
     print(f"Final Status: {status.status}")
 
 except APIError as e:
@@ -97,7 +98,7 @@ except APIError as e:
 
 ### Add Document to Index
 
-Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index)
+Add a new document to an existing index. (NOTE: We need an existing index with valid `index_id` to use this.)
 
 ```python
 try:
@@ -105,7 +106,6 @@ try:
         response = client.add_document(
             index_id='your-index-id',
             document=f,
-            filename='new_document.docx'
         )
     print(f"Task ID: {response.data.task_id}")
 
@@ -113,8 +113,12 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
+> [!IMPORTANT]
+> Simlar to iQ's `create_index` method is, `add_document` method is also an **asynchronous** process. Once submitted, iQ will respond with `task_id` and `check_status` URL for you to check the progress of the current indexing task. However, we recommend that you setup `webhooks` to ensure that your system is robust or maybe you can use our polling method `add_document_and_poll`, but this could create a blocking experience for your user, hence once again, dealer's choice!
+
+
 ### Add Document to Index with Polling
-Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index)
+Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index.)
 
 ```python
 try:
@@ -123,7 +127,7 @@ try:
             index_id='your-index-id',
             document=f,
             filename='new_document.docx',
-            max_retries=5,      # Maximum number of polling attempts
+            max_retries=6,      # Maximum number of polling attempts
             poll_interval=20    # Seconds between polling attempts
         )
 
@@ -164,7 +168,9 @@ except APIError as e:
 
 ### Delete Document from Index
 
-Remove a document from an index.
+Remove a document from an index. 
+>[!IMPORTANT]
+> Please note that deleting a document is irreversible process. 
 
 ```python
 try:
@@ -211,7 +217,10 @@ except APIError as e:
 
 #### Create Instant RAG
 
-Create a quick RAG system from text content (max 8000 tokens).
+Create an instant RAG system from raw text chunk (max 8000 tokens).
+
+>[!IMPORTANT]
+> `create_instant_rag` process is a sync/blocking process. Depending on the context length, it can take upto 30 seconds, and `instant_rag` doesn't work with our `Webhook` implementations.
 
 ```python
 try:
@@ -226,7 +235,7 @@ except APIError as e:
 
 #### Query Instant RAG
 
-Ask questions about your instant RAG content.
+Generate instant retrieval from `Instant RAG` index.
 
 ```python
 try:
@@ -242,30 +251,6 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-### Task Status
-
-#### Check Task Status
-
-Monitor the status of document processing tasks.
-
-```python
-try:
-    status = client.get_task_status('your-task-id')
-    print(f"Status: {status.status}")
-except APIError as e:
-    print(f"Error: {e}")
-
-# Poll for task completion (Optional)
-while True:
-    status = client.get_task_status('your-task-id')
-    print(f"Status: {status.status}")
-    if status.status == 'completed':
-        break
-    elif status.status == 'failed':
-        raise Exception("Index creation failed")
-    time.sleep(5)  # Wait 5 seconds before checking again
-```
-
 ## Supported Document Types
 
 The following document types are supported:
@@ -278,9 +263,12 @@ The following document types are supported:
 
 The SDK uses two main exception types:
 
-- `AuthenticationError`: Invalid API key
-- `APIError`: Other API-related errors
+- `AuthenticationError`: Invalid API key.
+- `APIError`: Other API-related errors.
 
-## Need Help?
+## Need more help?
 
-- Visit [https://docs.iqsuite.ai/](https://docs.iqsuite.ai/) for detailed documentation
+- Please visit [Documentation](https://docs.iqsuite.ai/) for detailed documentation.
+
+## Contact Us
+- Please reach out to us at [iQ Support](mailto:support@iqsuite.ai) for any other help.
