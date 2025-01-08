@@ -44,6 +44,7 @@ client = IQSuiteClient('your-api-key', base_url="https://staging.iqsuite.ai/api/
 ## API Reference
 
 ### Get Current User
+
 Retrieve information about the authenticated user.
 
 ```python
@@ -57,8 +58,8 @@ except APIError as e:
     print(f"API Error: {e}")
 ```
 
-
 ### Create Index
+
 Create a new index with an initial document. Supports PDF, DOC(X), and PPT(X) files.
 
 ```python
@@ -67,23 +68,36 @@ import time
 try:
     with open('document.pdf', 'rb') as f:
         response = client.create_index(f, 'document.pdf')
-        
     print(f"Task ID: {response.data.task_id}")
     print(f"Status URL: {response.data.check_status}")
-    
-    # Check task status using polling (Optional Step)
-    while True:
-        status = client.get_task_status(response.data.task_id)
-        if status.status == 'completed':
-            break
-        time.sleep(5)
-        
+except APIError as e:
+    print(f"Error: {e}")
+```
+
+## Create Index with Polling
+
+Create a new index with an initial document and wait for completion. This method handles the polling automatically.
+
+```python
+try:
+    with open('document.pdf', 'rb') as f:
+        response, status = client.create_index_and_poll(
+            document=f,
+            filename='document.pdf',
+            max_retries=5,  # Optional: Maximum number of polling attempts
+            poll_interval=5   # Optional: Seconds between polling attempts
+        )
+
+    print(f"Task ID: {response.data.task_id}")
+    print(f"Final Status: {status.status}")
+
 except APIError as e:
     print(f"Error: {e}")
 ```
 
 ### Add Document to Index
-Add a new document to an existing index.
+
+Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index)
 
 ```python
 try:
@@ -94,12 +108,34 @@ try:
             filename='new_document.docx'
         )
     print(f"Task ID: {response.data.task_id}")
-    
+
+except APIError as e:
+    print(f"Error: {e}")
+```
+
+## Add Document to Index with Polling
+Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index)
+
+```python
+try:
+    with open('new_document.docx', 'rb') as f:
+        response, status = client.add_document_and_poll(
+            index_id='your-index-id',
+            document=f,
+            filename='new_document.docx',
+            max_retries=5,  # Optional: Maximum number of polling attempts
+            poll_interval=5   # Optional: Seconds between polling attempts
+        )
+
+    print(f"Task ID: {response.data.task_id}")
+    print(f"Final Status: {status.status}")
+
 except APIError as e:
     print(f"Error: {e}")
 ```
 
 ### List All Indices
+
 Get a list of all available indices.
 
 ```python
@@ -113,6 +149,7 @@ except APIError as e:
 ```
 
 ### Get Documents in Index
+
 List all documents in a specific index.
 
 ```python
@@ -126,6 +163,7 @@ except APIError as e:
 ```
 
 ### Delete Document from Index
+
 Remove a document from an index.
 
 ```python
@@ -139,8 +177,8 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-
 ### Chat with Documents
+
 Ask questions about your documents in natural language.
 
 ```python
@@ -155,6 +193,7 @@ except APIError as e:
 ```
 
 ### Search Documents
+
 Perform hybrid semantic search across your documents.
 
 ```python
@@ -171,13 +210,14 @@ except APIError as e:
 ### Instant RAG
 
 #### Create Instant RAG
+
 Create a quick RAG system from text content (max 8000 tokens).
 
 ```python
 try:
     context = "Your text content here... (max 8000 tokens)"
     response = client.create_instant_rag(context)
-    
+
     print(f"Instant RAG ID: {response.data.id}")
     print(f"Query URL: {response.data.query_url}")
 except APIError as e:
@@ -185,6 +225,7 @@ except APIError as e:
 ```
 
 #### Query Instant RAG
+
 Ask questions about your instant RAG content.
 
 ```python
@@ -193,7 +234,7 @@ try:
         index_id='your-instant-rag-id',
         query="What is this text about?"
     )
-    
+
     print(f"Response: {response.data.retrieval_response}")
     print(f"Tokens Used: {response.data.total_tokens}")
     print(f"Credits Cost: {response.data.credits_cost}")
@@ -204,6 +245,7 @@ except APIError as e:
 ### Task Status
 
 #### Check Task Status
+
 Monitor the status of document processing tasks.
 
 ```python
@@ -227,6 +269,7 @@ while True:
 ## Supported Document Types
 
 The following document types are supported:
+
 - PDF (.pdf)
 - Microsoft Word (.doc, .docx)
 - Microsoft PowerPoint (.ppt, .pptx)
@@ -234,6 +277,7 @@ The following document types are supported:
 ## Error Handling
 
 The SDK uses two main exception types:
+
 - `AuthenticationError`: Invalid API key
 - `APIError`: Other API-related errors
 

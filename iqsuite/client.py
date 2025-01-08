@@ -1,6 +1,7 @@
 import requests
 import os
-from typing import List, Dict, Any, BinaryIO
+import time
+from typing import List, Dict, Any, BinaryIO, Tuple
 
 from iqsuite.utils import get_mime_type
 from .exceptions import AuthenticationError, APIError
@@ -158,6 +159,53 @@ class IQSuiteClient:
 
         finally:
             self.session.headers = original_headers
+
+    def create_index_and_poll(
+        self,
+        document: BinaryIO,
+        filename: str,
+        max_retries: int = 5,
+        poll_interval: int = 5
+    ) -> Tuple[TaskResponse, TaskStatus]:
+        response = self.create_index(document, filename)
+        task_id = response.data.task_id
+        
+        retries = 0
+        while retries < max_retries:
+            status = self.get_task_status(task_id)
+            if status.status == 'completed':
+                return response, status
+            elif status.status == 'failed':
+                raise APIError(f"Task failed with status: {status.status}")
+            
+            time.sleep(poll_interval)
+            retries += 1
+            
+        raise APIError(f"Maximum retries ({max_retries}) reached while polling task status")
+
+    def add_document_and_poll(
+        self,
+        index_id: str,
+        document: BinaryIO,
+        filename: str,
+        max_retries: int = 5,
+        poll_interval: int = 5
+    ) -> Tuple[TaskResponse, TaskStatus]:
+        response = self.add_document(index_id, document, filename)
+        task_id = response.data.task_id
+        
+        retries = 0
+        while retries < max_retries:
+            status = self.get_task_status(task_id)
+            if status.status == 'completed':
+                return response, status
+            elif status.status == 'failed':
+                raise APIError(f"Task failed with status: {status.status}")
+            
+            time.sleep(poll_interval)
+            retries += 1
+            
+        raise APIError(f"Maximum retries ({max_retries}) reached while polling task status")
 
     def get_task_status(self, task_id: str) -> TaskStatus:
         response = self.session.get(
