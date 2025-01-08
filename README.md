@@ -74,7 +74,7 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-## Create Index with Polling
+### Create Index with Polling
 
 Create a new index with an initial document and wait for completion. This method handles the polling automatically.
 
@@ -113,7 +113,7 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-## Add Document to Index with Polling
+### Add Document to Index with Polling
 Add a new document to an existing index. (NOTE: To use this function, you already should have an existing index)
 
 ```python
