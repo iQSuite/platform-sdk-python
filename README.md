@@ -11,7 +11,7 @@ iQ Suite Platform is a powerful Retrieval Augmented Generation as a service (RAG
 - Build **production-ready** document Q&A systems, natural-language-based analytics, key-value pair extractions, classifications, and etc.
 
 ## Table of Contents
-- [Installation](#installation)
+- [Installation Steps](#installation)
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Usage Examples](#usage-examples)
@@ -67,7 +67,7 @@ pip install iqsuite
 3. Once logged in, click on the "API Keys" from the left sidebar, fill in API key name and click `Create API Key` to create a new key.
 4. Copy the key and store it somewhere safe as **it'll not be shown again**.
 
-### Use the API Key
+### Initialize client with API key
 
 ```python
 import os
@@ -81,7 +81,7 @@ client = IQSuiteClient(os.getenv("IQSUITE_API_KEY"))
 
 ### Get Current User
 
-Retrieve information about the authenticated user. This is to ensure that you're successfully authenticated with iQ.
+Retrieve information about the authenticated user. This is to ensure that you're successfully authenticated with iQ Suite Platform.
 
 ```python
 try:
@@ -99,7 +99,12 @@ except APIError as e:
 #### Create Index
 
 > [!NOTE]
-> Creating an index is an asynchronous operation. You'll receive a task ID that you can use to track the progress.
+> Creating an index is an asynchronous operation. You'll receive a task ID that you can use to track the progress. The time duration depends on the volume of content on the file. There are two ways to ensure your index creation is completed. 
+>
+> 1. Using Polling (Example mentioned [here](#create-index-with-polling))
+> 2. Using Webhook Events (Example mentioned [here](#webhook-events))
+>
+> Using webhook would make your application more flexible and scalable in terms of usablity without being constantly polling and waiting for the index creation to complete. 
 
 ```python
 # Create a new index from a document
@@ -112,6 +117,10 @@ with open('document.pdf', 'rb') as f:
 
 > [!TIP]
 > Use this method when you need to wait for the index creation to complete before proceeding.
+>
+> The polling function has two parameters, polling_interval takes seconds as a an argument to wait for that certain seconds and then again retry poll. max_retries are the amount of retrires the function will fetch for status.
+>
+> For better flexiblity and scalablity, please refer the webhook events from [here](#webhook-events)
 
 ```python
 # Create index and wait for completion
@@ -153,6 +162,7 @@ print(f"Document ID: {response.document_id}")
 ```
 
 #### List Indices
+List the indices you have created.
 
 ```python
 # Get all your indices
@@ -163,6 +173,7 @@ for index in indices.data:
 ```
 
 #### List Documents
+List the documents you have ingested in the index. 
 
 ```python
 # Get all documents in an index
@@ -173,9 +184,12 @@ for doc in documents.data:
 ```
 
 #### Delete Document
+Delete a document from your index. 
 
 > [!CAUTION]
 > Document deletion is permanent and cannot be undone.
+>
+> This can come in handy to remove certain knowledge that you dont require anymore in the index context.
 
 ```python
 try:
@@ -187,7 +201,8 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-#### Chat
+## Chat
+Chat with your index in natural language. 
 
 > [!TIP]
 > For best results, make your questions clear and specific.
@@ -203,7 +218,8 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-#### Search
+## Search
+Search and find results with accuracy and precise fine grain re-ranking.
 
 ```python
 try:
@@ -216,7 +232,7 @@ except APIError as e:
     print(f"Error: {e}")
 ```
 
-#### Task Status
+### Task Status
 
 > [!TIP]
 > Use this to check the progress of any asynchronous operation.
@@ -244,6 +260,8 @@ while True:
 
 > [!IMPORTANT]
 > Instant RAG is perfect for quick, one-time analysis of text content without the need to create persistent indices.
+>
+> Instant RAG comes in really handy where you dont require a large context window, and want to extract key insights from a piece of content. With Instant RAG, iQ Suite allows you to ingest 8000 tokens ~ 32,000 characters ~ **26 pages** worth of content.
 
 #### Create Instant RAG
 
@@ -280,7 +298,7 @@ webhook = client.create_webhook(
     url="https://your-domain.com/webhook",
     name="Processing Events",
     enabled=True,
-    secret="your-webhook-secret"  # Optional: for security
+    secret="your-webhook-secret"  # for most secure connection and transmission
 )
 ```
 
