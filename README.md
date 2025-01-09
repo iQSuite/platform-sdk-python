@@ -746,7 +746,6 @@ The iQ Suite Platform supports a variety of document formats, ensuring flexibili
 1. **PDF Files (.pdf):**
    - **Text-based PDFs:** PDFs that contain selectable text.
    - **Scanned PDFs with OCR Support:** Image-based PDFs that require OCR to extract text.
-   - **Password-Protected PDFs:** Secure PDFs that require a password during upload.
 
 2. **Microsoft Word Documents:**
    - **Modern Format (.docx):** The current standard format for Word documents.
