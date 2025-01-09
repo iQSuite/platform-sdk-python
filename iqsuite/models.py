@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 
 
@@ -108,6 +108,47 @@ class InstantRagQueryResponse(BaseModel):
     """Model for instant RAG query response"""
 
     data: InstantRagQueryData
+
+    class Config:
+        extra = "allow"
+
+
+class Webhook(BaseModel):
+    """Model for webhook information"""
+
+    id: int
+    name: str
+    url: str
+    enabled: bool
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        extra = "allow"
+
+
+class WebhookListResponse(BaseModel):
+    """Model for webhook list response"""
+
+    data: List[Webhook]
+
+    class Config:
+        extra = "allow"
+
+
+class WebhookResponse(BaseModel):
+    """Model for single webhook response"""
+
+    data: Dict[str, Webhook]
+
+    class Config:
+        extra = "allow"
+
+
+class WebhookDeleteResponse(BaseModel):
+    """Model for webhook deletion response"""
+
+    data: Dict[str, str]
 
     class Config:
         extra = "allow"

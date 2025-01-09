@@ -13,6 +13,9 @@ from .models import (
     TaskStatus,
     InstantRagResponse,
     InstantRagQueryResponse,
+    WebhookDeleteResponse,
+    WebhookListResponse,
+    WebhookResponse,
 )
 
 
@@ -165,23 +168,25 @@ class IQSuiteClient:
         document: BinaryIO,
         filename: str,
         max_retries: int = 5,
-        poll_interval: int = 5
+        poll_interval: int = 5,
     ) -> Tuple[TaskResponse, TaskStatus]:
         response = self.create_index(document, filename)
         task_id = response.data.task_id
-        
+
         retries = 0
         while retries < max_retries:
             status = self.get_task_status(task_id)
-            if status.status == 'completed':
+            if status.status == "completed":
                 return response, status
-            elif status.status == 'failed':
+            elif status.status == "failed":
                 raise APIError(f"Task failed with status: {status.status}")
-            
+
             time.sleep(poll_interval)
             retries += 1
-            
-        raise APIError(f"Maximum retries ({max_retries}) reached while polling task status")
+
+        raise APIError(
+            f"Maximum retries ({max_retries}) reached while polling task status"
+        )
 
     def add_document_and_poll(
         self,
@@ -189,23 +194,25 @@ class IQSuiteClient:
         document: BinaryIO,
         filename: str,
         max_retries: int = 5,
-        poll_interval: int = 5
+        poll_interval: int = 5,
     ) -> Tuple[TaskResponse, TaskStatus]:
         response = self.add_document(index_id, document, filename)
         task_id = response.data.task_id
-        
+
         retries = 0
         while retries < max_retries:
             status = self.get_task_status(task_id)
-            if status.status == 'completed':
+            if status.status == "completed":
                 return response, status
-            elif status.status == 'failed':
+            elif status.status == "failed":
                 raise APIError(f"Task failed with status: {status.status}")
-            
+
             time.sleep(poll_interval)
             retries += 1
-            
-        raise APIError(f"Maximum retries ({max_retries}) reached while polling task status")
+
+        raise APIError(
+            f"Maximum retries ({max_retries}) reached while polling task status"
+        )
 
     def get_task_status(self, task_id: str) -> TaskStatus:
         response = self.session.get(
@@ -247,3 +254,35 @@ class IQSuiteClient:
         )
         data = self._handle_response(response)
         return InstantRagQueryResponse(**data)
+
+    def list_webhooks(self) -> WebhookListResponse:
+        response = self.session.get(f"{self.base_url}/webhooks")
+        data = self._handle_response(response)
+        return WebhookListResponse(**data)
+
+    def create_webhook(
+        self, url: str, name: str, enabled: bool = False
+    ) -> WebhookResponse:
+        payload = {"url": url, "name": name, "enabled": str(enabled).lower()}
+        response = self.session.post(f"{self.base_url}/webhooks", json=payload)
+        data = self._handle_response(response)
+        return WebhookResponse(**data)
+
+    def update_webhook(
+        self, webhook_id: str, url: str, name: str, enabled: bool = False
+    ) -> WebhookResponse:
+        payload = {
+            "webhook_id": webhook_id,
+            "url": url,
+            "name": name,
+            "enabled": str(enabled).lower(),
+        }
+        response = self.session.post(f"{self.base_url}/webhooks/update", json=payload)
+        data = self._handle_response(response)
+        return WebhookResponse(**data)
+
+    def delete_webhook(self, webhook_id: str) -> WebhookDeleteResponse:
+        payload = {"webhook_id": webhook_id}
+        response = self.session.post(f"{self.base_url}/webhooks/delete", json=payload)
+        data = self._handle_response(response)
+        return WebhookDeleteResponse(**data)
