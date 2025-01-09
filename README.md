@@ -1,17 +1,14 @@
-# iQSuite Python SDK
+# iQ Suite Python SDK
 
 [![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/)
 
-iQ Suite Platform is a powerful Retrieval Augmented Generation as a service (RAGAAS) and Hybrid Search that allows you to:
+iQ Suite Platform is a powerful Retrieval Augmented Generation as a service (RAGAAS). It offers Hybrid Search, RAG and Instant RAG APIs that allows you to:
 
 - Create **semantically** and **keyword-based** searchable indices from unstructured sources such as PDF, Microsoft Word, PowerPoint and raw text chunks
-- Quickly perform vector-based semantic retrieval augmented generation with precision and persistent performance
-- Chat with your documents using natural language
-- Instantly extract insights from raw unstructured text chunks, emails, domain-specific text data code
-- Build production-ready document Q&A systems, natural-language-based analytics, key-value pair extractions, classifications, and etc.
-
-
-> The platform handles all the complexity of document processing, embedding generation, contextualized chunking, reranking and vector search, allowing you to focus on building your application.
+- Quickly perform **vector-based semantic retrieval** augmented generation with **precision** and **persistent** performance
+- Chat with your documents using **natural language**
+- Instantly **extract insights** from raw unstructured text chunks, emails, domain-specific text data code
+- Build **production-ready** document Q&A systems, natural-language-based analytics, key-value pair extractions, classifications, and etc.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -89,7 +86,6 @@ Retrieve information about the authenticated user. This is to ensure that you're
 ```python
 try:
     user = client.get_user()
-    print(f"User ID: {user.id}")
     print(f"Email: {user.email}")
 except AuthenticationError:
     print("Invalid API key")
