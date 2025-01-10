@@ -761,7 +761,7 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 
 **Explanation of Payload Fields:**
 
-- **event:** The type of event that triggered the webhook (e.g., `index.created`, `document.added`).
+- **event:** The type of event that triggered the webhook (e.g., `index_creation_complete`).
 - **task_id:** The unique identifier for the task associated with the event.
 - **index_id:** The unique identifier for the index associated with the event.
 - **status:** The current status of the task (e.g., `completed`, `failed`).
