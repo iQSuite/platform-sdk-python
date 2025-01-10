@@ -261,14 +261,14 @@ with open('document.pdf', 'rb') as file:
     # Send a request to create an index with the provided document
     response = client.create_index(document=file, filename='document.pdf')
     # Print the received Task ID to monitor progress
-    print(f"Task ID: {response.task_id}")
+    print(f"Task ID: {response.data.task_id}")
 ```
 
 **Explanation:**
 
 - **open('document.pdf', 'rb'):** Opens the PDF file in binary read mode.
 - **client.create_index():** Initiates the index creation process.
-- **response.task_id:** Receives a unique identifier to track the status of the indexing task.
+- **response.data.task_id:** Receives a unique identifier to track the status of the indexing task.
 
 **Next Steps:**
 
