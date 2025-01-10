@@ -310,7 +310,7 @@ class IQSuiteClient:
         try:
             response = self.session.get(f"{self.base_url}/webhooks")
             data = self._handle_response(response)
-            return WebhookListResponse(**data)
+            return data
         except Exception as e:
             raise APIError(f"Error in list_webhooks: {str(e)}") from e
 
@@ -327,26 +327,14 @@ class IQSuiteClient:
             }
             response = self.session.post(f"{self.base_url}/webhooks", json=payload)
             response_data = self._handle_response(response)
-
-            webhook_data = response_data['data']['webhook']
-
-            webhook_formatted = {
-                "id": str(webhook_data['id']),
-                "url": url,
-                "name": webhook_data['name'],
-                "enabled": webhook_data['enabled'] == "true",
-                "secret": secret,
-                "created_at": webhook_data['created_at'],
-                "updated_at": webhook_data['updated_at']
-            }
-            return WebhookResponse(webhook=webhook_formatted)
+            return response_data.get('webhook')
 
         except Exception as e:
             logger.exception(f"Error in create_webhook: {str(e)}")
             raise APIError(f"Error in create_webhook: {str(e)}") from e
 
     def update_webhook(
-        self, webhook_id: str, url: str, name: str, enabled: bool
+        self, webhook_id: str, url: str, name: str, enabled: str
     ) -> WebhookResponse:
         try:
             payload = {
@@ -359,7 +347,7 @@ class IQSuiteClient:
                 f"{self.base_url}/webhooks/update", json=payload
             )
             data = self._handle_response(response)
-            return WebhookResponse(**data)
+            return data
         except Exception as e:
             raise APIError(f"Error in update_webhook: {str(e)}") from e
 
@@ -370,6 +358,6 @@ class IQSuiteClient:
                 f"{self.base_url}/webhooks/delete", json=payload
             )
             data = self._handle_response(response)
-            return WebhookDeleteResponse(**data)
+            return data
         except Exception as e:
             raise APIError(f"Error in delete_webhook: {str(e)}") from e
