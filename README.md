@@ -701,10 +701,10 @@ Modify the configuration of an existing webhook. This is useful if you need to c
 
 ```python
 updated_webhook = client.update_webhook(
-    webhook_id="3",                                   # The ID of the webhook to update
-    url="https://your-domain.com/new-endpoint",       # The new endpoint URL
-    name="Updated Webhook Name",                      # The new name for the webhook
-    enabled="true"                                    # Whether the webhook should be enabled (true/false)
+    webhook_id="whk_abc123",                                    # The ID of the webhook to update
+    url="https://your-domain.com/new-endpoint",                 # The new endpoint URL
+    name="Updated Webhook Name",                                # The new name for the webhook
+    enabled="true"                                              # Whether the webhook should be enabled (true/false)
 )
 # Print the updated webhook details
 print(f"Updated Webhook: {updated_webhook}")
