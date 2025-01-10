@@ -137,9 +137,11 @@ class WebhookListResponse(BaseModel):
 
 
 class WebhookResponse(BaseModel):
-    """Model for single webhook response"""
-
-    data: Dict[str, Webhook]
+    id: int
+    name: str
+    url: str
+    enabled: bool
+    secret: str
 
     class Config:
         extra = "allow"

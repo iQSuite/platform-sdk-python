@@ -38,7 +38,7 @@ Welcome to the **iQ Suite Python SDK**! This Software Development Kit (SDK) allo
     - [List Indices](#list-indices)
     - [List Documents](#list-documents)
     - [Delete Document](#delete-document)
-    - [Chat](#chat)
+    - [Retrieve](#retrieve)
     - [Search](#search)
     - [Task Status](#task-status)
   - [Instant RAG](#instant-rag)
@@ -245,7 +245,7 @@ If successful, the script will print the authenticated user's email address. Oth
 
 ### Document-based RAG
 
-Document-based RAG involves creating indices from your documents and performing operations like searching, chatting, and managing documents within these indices. This section guides you through the various operations you can perform.
+Document-based RAG involves creating indices from your documents and performing operations like searching, retrieving content, and managing documents within these indices. This section guides you through the various operations you can perform.
 
 #### Create Index
 
@@ -435,18 +435,18 @@ except APIError as e:
 
 If successful, the script will confirm the deletion. Otherwise, it will display an error message.
 
-### Chat
+### Retrieve
 
 Engage in natural language conversations with your indexed documents. This feature allows you to ask questions and receive answers based on the content of your documents.
 
 > **💡 Tip:** *Formulate clear and specific questions to get the most accurate responses.*
 
-##### Example: Chat with Your Index
+##### Example: Query with Your Index
 
 ```python
 try:
     # Send a natural language query to the specified index
-    response = client.chat(
+    response = client.retrieve(
         index_id='your-index-id',
         query="What are the main points discussed in the document?"
     )
@@ -461,7 +461,7 @@ except APIError as e:
 
 - **index_id='your-index-id':** Replace with your actual Index ID.
 - **query="...":** The natural language question you want to ask.
-- **client.chat():** Sends the query to the platform and retrieves the response.
+- **client.retrieve():** Sends the query to the platform and retrieves the response.
 
 **Output:**
 

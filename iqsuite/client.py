@@ -221,7 +221,7 @@ class IQSuiteClient:
         data = self._handle_response(response)
         return TaskStatus(**data)
 
-    def chat(self, index_id: str, query: str) -> Dict[str, Any]:
+    def retrieve(self, index_id: str, query: str) -> Dict[str, Any]:
         response = self.session.post(
             f"{self.base_url}/index/retrieve", json={"index": index_id, "query": query}
         )
@@ -261,8 +261,9 @@ class IQSuiteClient:
         return WebhookListResponse(**data)
 
     def create_webhook(
-        self, url: str, name: str, secret: str, enabled: str
+        self, url: str, name: str, secret: str, enabled: bool
     ) -> WebhookResponse:
+        print("here")
         payload = {
             "url": url,
             "name": name,
@@ -271,7 +272,8 @@ class IQSuiteClient:
         }
         response = self.session.post(f"{self.base_url}/webhooks", json=payload)
         data = self._handle_response(response)
-        return WebhookResponse(**data)
+        wrapped_data = {"webhook": data}
+        return WebhookResponse(**wrapped_data)
 
     def update_webhook(
         self, webhook_id: str, url: str, name: str, enabled: str
