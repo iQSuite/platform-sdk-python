@@ -261,21 +261,26 @@ class IQSuiteClient:
         return WebhookListResponse(**data)
 
     def create_webhook(
-        self, url: str, name: str, secret: str, enabled: bool = False
+        self, url: str, name: str, secret: str, enabled: str
     ) -> WebhookResponse:
-        payload = {"url": url, "name": name, "enabled": str(enabled).lower(), "secret":secret}
+        payload = {
+            "url": url,
+            "name": name,
+            "enabled": enabled,
+            "secret": secret,
+        }
         response = self.session.post(f"{self.base_url}/webhooks", json=payload)
         data = self._handle_response(response)
         return WebhookResponse(**data)
 
     def update_webhook(
-        self, webhook_id: str, url: str, name: str, enabled: bool = False
+        self, webhook_id: str, url: str, name: str, enabled: str
     ) -> WebhookResponse:
         payload = {
             "webhook_id": webhook_id,
             "url": url,
             "name": name,
-            "enabled": str(enabled).lower(),
+            "enabled": enabled,
         }
         response = self.session.post(f"{self.base_url}/webhooks/update", json=payload)
         data = self._handle_response(response)
