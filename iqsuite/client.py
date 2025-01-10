@@ -261,9 +261,9 @@ class IQSuiteClient:
         return WebhookListResponse(**data)
 
     def create_webhook(
-        self, url: str, name: str, enabled: bool = False
+        self, url: str, name: str, secret: str, enabled: bool = False
     ) -> WebhookResponse:
-        payload = {"url": url, "name": name, "enabled": str(enabled).lower()}
+        payload = {"url": url, "name": name, "enabled": str(enabled).lower(), "secret":secret}
         response = self.session.post(f"{self.base_url}/webhooks", json=payload)
         data = self._handle_response(response)
         return WebhookResponse(**data)
