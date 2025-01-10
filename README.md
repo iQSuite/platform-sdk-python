@@ -641,15 +641,15 @@ Set up a webhook to receive notifications about specific events from the iQ Suit
 ##### Example: Create a New Webhook
 
 ```python
-# Define the webhook details
+
 webhook = client.create_webhook(
-    url="https://your-domain.com/webhook",   # The endpoint where notifications will be sent
-    name="Processing Events",               # A descriptive name for the webhook
-    enabled=True,                           # Enable the webhook upon creation
-    secret="your-webhook-secret"            # A secret key for verifying webhook signatures
+    url="https://your-domain.com/webhook",   # Your custom domain where the events notifications will be sent
+    name="Processing Events",                # Webhook name
+    enabled="true",                          # Webhook Enabled (true/false)
+    secret="your-webhook-secret"             # Add a layer of security with secret 
 )
-# Print the Webhook ID
-print(f"Webhook ID: {webhook.id}")
+
+print(webhook)
 ```
 
 **Explanation:**
@@ -670,12 +670,18 @@ Retrieve a list of all webhooks you have set up. This helps you manage and revie
 ##### Example: List All Webhooks
 
 ```python
-# Fetch all webhooks associated with your account
-webhooks = client.list_webhooks()
+try:
+    webhooks = client.list_webhooks()
+    print("\n=== Webhooks List ===")
+    print(f"{'ID':<6} {'Name':<30} {'URL':<40} {'Status':<10} {'Created At'}")
+    print("-" * 96)
+    
+    for webhook in webhooks:
+        status = "Enabled" if webhook['enabled'] else "Disabled"
+        print(f"{webhook['id']:<6} {webhook['name']:<30} {webhook['url']:<40} {status:<10} {webhook['created_at']}")
 
-# Iterate through each webhook and print its details
-for wh in webhooks.data:
-    print(f"Webhook ID: {wh.id} | URL: {wh.url} | Enabled: {wh.enabled}")
+except Exception as e:
+    print(f"Error getting webhooks: {str(e)}")
 ```
 
 **Explanation:**
@@ -694,12 +700,11 @@ Modify the configuration of an existing webhook. This is useful if you need to c
 ##### Example: Update an Existing Webhook
 
 ```python
-# Define the new details for the webhook
 updated_webhook = client.update_webhook(
-    webhook_id="whk_abc123",                       # The ID of the webhook to update
-    url="https://your-domain.com/new-endpoint",    # The new endpoint URL
-    name="Updated Webhook Name",                   # The new name for the webhook
-    enabled=True                                   # Whether the webhook should be enabled
+    webhook_id="3",                                   # The ID of the webhook to update
+    url="https://your-domain.com/new-endpoint",       # The new endpoint URL
+    name="Updated Webhook Name",                      # The new name for the webhook
+    enabled="true"                                    # Whether the webhook should be enabled (true/false)
 )
 # Print the updated webhook details
 print(f"Updated Webhook: {updated_webhook}")
@@ -725,7 +730,7 @@ Remove a webhook from your account. This stops all notifications to the specifie
 ```python
 try:
     # Attempt to delete the specified webhook
-    client.delete_webhook(webhook_id="whk_abc123")
+    client.delete_webhook(webhook_id="your_webhook_id")
     print("Webhook deleted successfully.")
 except APIError as e:
     # Handle any API-related errors
@@ -734,7 +739,7 @@ except APIError as e:
 
 **Explanation:**
 
-- **webhook_id="whk_abc123":** Replace with the actual Webhook ID you wish to delete.
+- **webhook_id="your_webhook_id":** Replace with the actual Webhook ID you wish to delete.
 - **client.delete_webhook():** Sends a request to delete the specified webhook.
 
 **Output:**
@@ -747,14 +752,10 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 
 ```json
 {
-    "event": "index.created",
-    "task_id": "task_abc123",
-    "status": "completed",
-    "data": {
-        "index_id": "idx_xyz789",
-        "document_count": 1
-    },
-    "timestamp": "2025-01-09T09:10:27.000000Z"
+  "event": "index_creation_complete",
+  "task_id": "2dca8de9-8a51-497a-9a45-cc6541d4a7bc",
+  "index": "08c9ab9f-1b1c-4fc8-8679-a63387654893",
+  "status": "completed"
 }
 ```
 
@@ -762,9 +763,8 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 
 - **event:** The type of event that triggered the webhook (e.g., `index.created`, `document.added`).
 - **task_id:** The unique identifier for the task associated with the event.
+- **index_id:** The unique identifier for the index associated with the event.
 - **status:** The current status of the task (e.g., `completed`, `failed`).
-- **data:** Additional information related to the event, such as `index_id` and `document_count`.
-- **timestamp:** The exact time when the event occurred.
 
 > **🔒 Important:** *Always verify webhook signatures in production environments to ensure that incoming requests are genuinely from the iQ Suite Platform and not malicious actors.*
 
