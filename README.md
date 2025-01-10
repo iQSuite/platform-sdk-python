@@ -509,16 +509,13 @@ Perform precise and accurate searches within your indexed documents. This featur
 
 ```python
 try:
-    # Send a search query to the specified index
     results = client.search(
-        index_id='your-index-id',
+        index_id='your_index_id',
         query="neural networks"
     )
-    # Iterate through the search results and print details
-    for result in results.data:
-        print(f"Document: {result.document_id} | Score: {result.score}")
+    print(results)
+        
 except APIError as e:
-    # Handle any API-related errors
     print(f"Error: {e}")
 ```
 
@@ -526,7 +523,7 @@ except APIError as e:
 
 - **query="neural networks":** The search term you want to look for within your documents.
 - **client.search():** Sends the search query to the platform.
-- **results.data:** Contains the list of search results returned by the API.
+- **results:** Contains the list of search results returned by the API.
 
 **Output:**
 
@@ -594,8 +591,9 @@ that you need to analyze or query immediately without creating a persistent inde
 
 # Send a request to create an Instant RAG session
 response = client.create_instant_rag(context=context)
-# Print the received Instant RAG ID
-print(f"Instant RAG ID: {response.rag_id}")
+
+print(f"Message: {response.message}")
+print(f"ID: {response.id}")
 ```
 
 **Explanation:**
@@ -612,10 +610,9 @@ The script will display the `Instant RAG ID`, which you can use to perform queri
 ##### Example: Query Your Instant RAG Session
 
 ```python
-# Replace 'irag_abc123' with your actual Instant RAG ID
 response = client.query_instant_rag(
-    rag_id="irag_abc123",
-    query="What are the key points in this text?"
+        index_id='your_index_id',
+        query='your search query'
 )
 # Print the response from the platform
 print(f"Response: {response}")
@@ -623,7 +620,7 @@ print(f"Response: {response}")
 
 **Explanation:**
 
-- **rag_id="irag_abc123":** The Instant RAG ID obtained from the previous step.
+- **rag_id="your_index_id":** The Instant RAG ID obtained from the previous step.
 - **query="...":** The question you want to ask based on the provided context.
 - **client.query_instant_rag():** Sends the query to the Instant RAG session and retrieves the response.
 
