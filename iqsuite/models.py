@@ -103,11 +103,15 @@ class InstantRagQueryData(BaseModel):
     class Config:
         extra = "allow"
 
+class SourceDocument(BaseModel):
+    id: str
+    file_name: str
 
 class InstantRagQueryResponse(BaseModel):
-    """Model for instant RAG query response"""
-
-    data: InstantRagQueryData
+    uuid: str
+    total_tokens: int
+    answer: str
+    source_documents: Optional[List[SourceDocument]] = []
 
     class Config:
         extra = "allow"
@@ -116,12 +120,13 @@ class InstantRagQueryResponse(BaseModel):
 class Webhook(BaseModel):
     """Model for webhook information"""
 
-    id: int
-    name: str
+    id: str
     url: str
+    name: str
     enabled: bool
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    secret: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         extra = "allow"
@@ -137,11 +142,7 @@ class WebhookListResponse(BaseModel):
 
 
 class WebhookResponse(BaseModel):
-    id: int
-    name: str
-    url: str
-    enabled: bool
-    secret: str
+    webhook: Webhook
 
     class Config:
         extra = "allow"

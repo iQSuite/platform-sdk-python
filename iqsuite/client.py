@@ -18,6 +18,10 @@ from .models import (
     WebhookResponse,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class IQSuiteClient:
     def __init__(
@@ -39,7 +43,7 @@ class IQSuiteClient:
             }
         )
 
-    def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
+    def _handle_response(self, response: requests.Response) -> Any:
         try:
             response.raise_for_status()
             try:
@@ -55,8 +59,10 @@ class IQSuiteClient:
                 )
 
             if isinstance(data, dict) and "data" in data:
-                return data
+                logger.debug(f"Response data: {data['data']}")
+                return data["data"]  # Return only the 'data' part
 
+            logger.debug(f"Response data: {data}")
             return data
 
         except requests.exceptions.HTTPError as e:
@@ -79,89 +85,108 @@ class IQSuiteClient:
                 status_code=response.status_code,
                 response=response,
             )
+        except Exception as e:
+            raise APIError(f"Unexpected error: {str(e)}") from e
 
     def get_user(self) -> User:
-        response = self.session.get(f"{self.base_url}/user")
-        data = self._handle_response(response)
-        return User(**data)
+        try:
+            response = self.session.get(f"{self.base_url}/user")
+            data = self._handle_response(response)
+            return User(**data)
+        except Exception as e:
+            raise APIError(f"Error in get_user: {str(e)}") from e
 
     def list_indexes(self) -> List[Index]:
-        response = self.session.get(f"{self.base_url}/index")
-        data = self._handle_response(response)
-        return [Index(**index) for index in data]
+        try:
+            response = self.session.get(f"{self.base_url}/index")
+            data = self._handle_response(response)
+            return [Index(**index) for index in data]
+        except Exception as e:
+            raise APIError(f"Error in list_indexes: {str(e)}") from e
 
     def get_documents(self, index_id: str) -> DocumentListResponse:
-        response = self.session.get(
-            f"{self.base_url}/index/get-all-documents", params={"index": index_id}
-        )
-        response_data = self._handle_response(response)
-        return DocumentListResponse(data=response_data["data"])
+        try:
+            response = self.session.get(
+                f"{self.base_url}/index/get-all-documents", params={"index": index_id}
+            )
+            response_data = self._handle_response(response)
+            return DocumentListResponse(data=response_data)
+        except Exception as e:
+            raise APIError(f"Error in get_documents: {str(e)}") from e
 
     def create_index(self, document: BinaryIO, filename: str) -> TaskResponse:
-        mime_type = get_mime_type(filename)
-
-        supported_types = {
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        }
-
-        if mime_type not in supported_types:
-            raise ValueError(
-                f"Unsupported file type: {mime_type}. "
-                "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
-            )
-
-        original_headers = self.session.headers.copy()
-        self.session.headers.pop("Content-Type", None)
-
         try:
-            files = {"document": (filename, document, mime_type)}
-            response = self.session.post(f"{self.base_url}/index/create", files=files)
-            response_data = self._handle_response(response)
-            return TaskResponse(data=response_data["data"])
+            mime_type = get_mime_type(filename)
 
-        finally:
-            self.session.headers = original_headers
+            supported_types = {
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            }
+
+            if mime_type not in supported_types:
+                raise ValueError(
+                    f"Unsupported file type: {mime_type}. "
+                    "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
+                )
+
+            original_headers = self.session.headers.copy()
+            self.session.headers.pop("Content-Type", None)
+
+            try:
+                files = {"document": (filename, document, mime_type)}
+                response = self.session.post(
+                    f"{self.base_url}/index/create", files=files
+                )
+                response_data = self._handle_response(response)
+                return TaskResponse(data=response_data["data"])
+
+            finally:
+                self.session.headers = original_headers
+        except Exception as e:
+            raise APIError(f"Error in create_index: {str(e)}") from e
 
     def add_document(
         self, index_id: str, document: BinaryIO, filename: str
     ) -> TaskResponse:
-        mime_type = get_mime_type(filename)
-
-        supported_types = {
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "image/jpeg",
-            "image/png",
-            "image/tiff",
-            "image/bmp",
-        }
-
-        if mime_type not in supported_types:
-            raise ValueError(
-                f"Unsupported file type: {mime_type}. "
-                "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
-            )
-
-        original_headers = self.session.headers.copy()
-        self.session.headers.pop("Content-Type", None)
-
         try:
-            files = {"document": (filename, document, mime_type)}
-            response = self.session.post(
-                f"{self.base_url}/index/add-document",
-                data={"index": index_id},
-                files=files,
-            )
-            response_data = self._handle_response(response)
-            return TaskResponse(data=response_data["data"])
+            mime_type = get_mime_type(filename)
 
-        finally:
-            self.session.headers = original_headers
+            supported_types = {
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "image/jpeg",
+                "image/png",
+                "image/tiff",
+                "image/bmp",
+            }
+
+            if mime_type not in supported_types:
+                raise ValueError(
+                    f"Unsupported file type: {mime_type}. "
+                    "Supported types are: PDF, DOC, DOCX, JPG, PNG, TIFF, BMP"
+                )
+
+            original_headers = self.session.headers.copy()
+            self.session.headers.pop("Content-Type", None)
+
+            try:
+                files = {"document": (filename, document, mime_type)}
+                response = self.session.post(
+                    f"{self.base_url}/index/add-document",
+                    data={"index": index_id},
+                    files=files,
+                )
+                response_data = self._handle_response(response)
+                return TaskResponse(data=response_data["data"])
+
+            finally:
+                self.session.headers = original_headers
+        except Exception as e:
+            raise APIError(f"Error in add_document: {str(e)}") from e
 
     def create_index_and_poll(
         self,
@@ -170,23 +195,26 @@ class IQSuiteClient:
         max_retries: int = 5,
         poll_interval: int = 5,
     ) -> Tuple[TaskResponse, TaskStatus]:
-        response = self.create_index(document, filename)
-        task_id = response.data.task_id
+        try:
+            response = self.create_index(document, filename)
+            task_id = response.data.task_id
 
-        retries = 0
-        while retries < max_retries:
-            status = self.get_task_status(task_id)
-            if status.status == "completed":
-                return response, status
-            elif status.status == "failed":
-                raise APIError(f"Task failed with status: {status.status}")
+            retries = 0
+            while retries < max_retries:
+                status = self.get_task_status(task_id)
+                if status.status == "completed":
+                    return response, status
+                elif status.status == "failed":
+                    raise APIError(f"Task failed with status: {status.status}")
 
-            time.sleep(poll_interval)
-            retries += 1
+                time.sleep(poll_interval)
+                retries += 1
 
-        raise APIError(
-            f"Maximum retries ({max_retries}) reached while polling task status"
-        )
+            raise APIError(
+                f"Maximum retries ({max_retries}) reached while polling task status"
+            )
+        except Exception as e:
+            raise APIError(f"Error in create_index_and_poll: {str(e)}") from e
 
     def add_document_and_poll(
         self,
@@ -196,100 +224,152 @@ class IQSuiteClient:
         max_retries: int = 5,
         poll_interval: int = 5,
     ) -> Tuple[TaskResponse, TaskStatus]:
-        response = self.add_document(index_id, document, filename)
-        task_id = response.data.task_id
+        try:
+            response = self.add_document(index_id, document, filename)
+            task_id = response.data.task_id
 
-        retries = 0
-        while retries < max_retries:
-            status = self.get_task_status(task_id)
-            if status.status == "completed":
-                return response, status
-            elif status.status == "failed":
-                raise APIError(f"Task failed with status: {status.status}")
+            retries = 0
+            while retries < max_retries:
+                status = self.get_task_status(task_id)
+                if status.status == "completed":
+                    return response, status
+                elif status.status == "failed":
+                    raise APIError(f"Task failed with status: {status.status}")
 
-            time.sleep(poll_interval)
-            retries += 1
+                time.sleep(poll_interval)
+                retries += 1
 
-        raise APIError(
-            f"Maximum retries ({max_retries}) reached while polling task status"
-        )
+            raise APIError(
+                f"Maximum retries ({max_retries}) reached while polling task status"
+            )
+        except Exception as e:
+            raise APIError(f"Error in add_document_and_poll: {str(e)}") from e
 
     def get_task_status(self, task_id: str) -> TaskStatus:
-        response = self.session.get(
-            f"{self.base_url}/create-index/task-status/{task_id}"
-        )
-        data = self._handle_response(response)
-        return TaskStatus(**data)
+        try:
+            response = self.session.get(
+                f"{self.base_url}/create-index/task-status/{task_id}"
+            )
+            data = self._handle_response(response)
+            return TaskStatus(**data)
+        except Exception as e:
+            raise APIError(f"Error in get_task_status: {str(e)}") from e
 
     def retrieve(self, index_id: str, query: str) -> Dict[str, Any]:
-        response = self.session.post(
-            f"{self.base_url}/index/retrieve", json={"index": index_id, "query": query}
-        )
-        return self._handle_response(response)
+        try:
+            response = self.session.post(
+                f"{self.base_url}/index/retrieve",
+                json={"index": index_id, "query": query},
+            )
+            return self._handle_response(response)
+        except Exception as e:
+            raise APIError(f"Error in retrieve: {str(e)}") from e
 
     def search(self, index_id: str, query: str) -> Dict[str, Any]:
-        response = self.session.post(
-            f"{self.base_url}/index/search", json={"index": index_id, "query": query}
-        )
-        return self._handle_response(response)
+        try:
+            response = self.session.post(
+                f"{self.base_url}/index/search",
+                json={"index": index_id, "query": query},
+            )
+            return self._handle_response(response)
+        except Exception as e:
+            raise APIError(f"Error in search: {str(e)}") from e
 
     def delete_document(self, index_id: str, document_id: str) -> Dict[str, Any]:
-        response = self.session.post(
-            f"{self.base_url}/index/delete-document",
-            json={"index": index_id, "document": document_id},
-        )
-        return self._handle_response(response)
+        try:
+            response = self.session.post(
+                f"{self.base_url}/index/delete-document",
+                json={"index": index_id, "document": document_id},
+            )
+            return self._handle_response(response)
+        except Exception as e:
+            raise APIError(f"Error in delete_document: {str(e)}") from e
 
     def create_instant_rag(self, context: str) -> InstantRagResponse:
-        response = self.session.post(
-            f"{self.base_url}/index/instant/create", json={"context": context}
-        )
-        data = self._handle_response(response)
-        return InstantRagResponse(**data)
+        try:
+            response = self.session.post(
+                f"{self.base_url}/index/instant/create", json={"context": context}
+            )
+            data = self._handle_response(response)
+            return InstantRagResponse(**data)
+        except Exception as e:
+            raise APIError(f"Error in create_instant_rag: {str(e)}") from e
 
     def query_instant_rag(self, index_id: str, query: str) -> InstantRagQueryResponse:
-        response = self.session.post(
-            f"{self.base_url}/index/instant/query",
-            json={"index": index_id, "query": query},
-        )
-        data = self._handle_response(response)
-        return InstantRagQueryResponse(**data)
+        try:
+            response = self.session.post(
+                f"{self.base_url}/index/instant/query",
+                json={"index": index_id, "query": query},
+            )
+            data = self._handle_response(response)
+            return InstantRagQueryResponse(**data)
+        except Exception as e:
+            raise APIError(f"Error in query_instant_rag: {str(e)}") from e
 
     def list_webhooks(self) -> WebhookListResponse:
-        response = self.session.get(f"{self.base_url}/webhooks")
-        data = self._handle_response(response)
-        return WebhookListResponse(**data)
+        try:
+            response = self.session.get(f"{self.base_url}/webhooks")
+            data = self._handle_response(response)
+            return WebhookListResponse(**data)
+        except Exception as e:
+            raise APIError(f"Error in list_webhooks: {str(e)}") from e
 
     def create_webhook(
-        self, url: str, name: str, secret: str, enabled: bool
+        self, url: str, name: str, secret: str, enabled: str
     ) -> WebhookResponse:
-        print("here")
-        payload = {
-            "url": url,
-            "name": name,
-            "enabled": enabled,
-            "secret": secret,
-        }
-        response = self.session.post(f"{self.base_url}/webhooks", json=payload)
-        data = self._handle_response(response)
-        wrapped_data = {"webhook": data}
-        return WebhookResponse(**wrapped_data)
+        try:
+            logger.debug("Creating a new webhook.")
+            payload = {
+                "url": url,
+                "name": name,
+                "enabled": enabled,
+                "secret": secret,
+            }
+            response = self.session.post(f"{self.base_url}/webhooks", json=payload)
+            response_data = self._handle_response(response)
+
+            webhook_data = response_data['data']['webhook']
+
+            webhook_formatted = {
+                "id": str(webhook_data['id']),
+                "url": url,
+                "name": webhook_data['name'],
+                "enabled": webhook_data['enabled'] == "true",
+                "secret": secret,
+                "created_at": webhook_data['created_at'],
+                "updated_at": webhook_data['updated_at']
+            }
+            return WebhookResponse(webhook=webhook_formatted)
+
+        except Exception as e:
+            logger.exception(f"Error in create_webhook: {str(e)}")
+            raise APIError(f"Error in create_webhook: {str(e)}") from e
 
     def update_webhook(
-        self, webhook_id: str, url: str, name: str, enabled: str
+        self, webhook_id: str, url: str, name: str, enabled: bool
     ) -> WebhookResponse:
-        payload = {
-            "webhook_id": webhook_id,
-            "url": url,
-            "name": name,
-            "enabled": enabled,
-        }
-        response = self.session.post(f"{self.base_url}/webhooks/update", json=payload)
-        data = self._handle_response(response)
-        return WebhookResponse(**data)
+        try:
+            payload = {
+                "webhook_id": webhook_id,
+                "url": url,
+                "name": name,
+                "enabled": enabled,
+            }
+            response = self.session.post(
+                f"{self.base_url}/webhooks/update", json=payload
+            )
+            data = self._handle_response(response)
+            return WebhookResponse(**data)
+        except Exception as e:
+            raise APIError(f"Error in update_webhook: {str(e)}") from e
 
     def delete_webhook(self, webhook_id: str) -> WebhookDeleteResponse:
-        payload = {"webhook_id": webhook_id}
-        response = self.session.post(f"{self.base_url}/webhooks/delete", json=payload)
-        data = self._handle_response(response)
-        return WebhookDeleteResponse(**data)
+        try:
+            payload = {"webhook_id": webhook_id}
+            response = self.session.post(
+                f"{self.base_url}/webhooks/delete", json=payload
+            )
+            data = self._handle_response(response)
+            return WebhookDeleteResponse(**data)
+        except Exception as e:
+            raise APIError(f"Error in delete_webhook: {str(e)}") from e
