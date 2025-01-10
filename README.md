@@ -281,20 +281,26 @@ Polling allows your application to regularly check the status of an asynchronous
 ##### Example: Create Index and Wait for Completion
 
 ```python
-# Initiate index creation and wait for it to complete
-response = client.create_index_and_poll(
-    document='document.pdf',
-    polling_interval=20,  # Time in seconds between each poll
-    max_retries=10         # Maximum number of polling attempts
-)
-# Print the Index ID once creation is complete
-print(f"Index ID: {response.index_id}")
+try:
+    # Open the file in binary mode
+    with open('document.pdf', 'rb') as file:
+        # Initiate index creation and wait for it to complete
+        response, status = client.create_index_and_poll(
+            document=file,          # Pass the binary file object
+            filename='document.pdf',# Provide the filename
+            poll_interval=20,       # Time in seconds between each poll
+            max_retries=10          # Maximum number of polling attempts
+        )
+    # Print the Index ID once creation is complete
+    print(f"Index ID: {response.data.task_id}")
+except APIError as e:
+    print(f"An error occurred: {e}")
 ```
 
 **Explanation:**
 
 - **client.create_index_and_poll():** Combines index creation and polling into a single step.
-- **polling_interval:** Defines how frequently the client checks the task status.
+- **poll_interval:** Defines how frequently the client checks the task status.
 - **max_retries:** Limits the number of polling attempts to prevent indefinite waiting.
 
 **Output:**
@@ -310,21 +316,25 @@ Adding documents to an existing index allows you to expand the knowledge base yo
 ##### Example: Add a New Document to an Existing Index
 
 ```python
-# Open the new document you want to add in binary read mode
-with open('new_document.docx', 'rb') as file:
-    # Send a request to add the document to the specified index
-    response = client.add_document(
-        index_id='idx_abc123',
-        document=file,
-        filename='new_document.docx'
-    )
-    # Print the received Task ID to monitor progress
-    print(f"Task ID: {response.task_id}")
+try:
+    # Open the new document you want to add in binary read mode
+    with open('document.pdf', 'rb') as file:
+        # Send a request to add the document to the specified index
+        response = client.add_document(
+            index_id='your_index_id',      # Use the valid index_id obtained earlier
+            document=file,                 # Pass the binary file object
+            filename='document.pdf'        # Provide the filename
+        )
+        # Print the received Task ID to monitor progress
+        print(f"Task ID: {response.data.task_id}")
+except APIError as e:
+    print(f"An error occurred while adding the document: {e}")
+
 ```
 
 **Explanation:**
 
-- **index_id='idx_abc123':** Replace `'idx_abc123'` with your actual Index ID.
+- **index_id='your_index_id':** Replace `'your_index_id'` with your actual Index ID.
 - **client.add_document():** Sends a request to add the new document to the specified index.
 
 **Next Steps:**
@@ -338,22 +348,32 @@ Wait for the document addition process to complete by periodically checking its 
 ##### Example: Add Document and Wait for Completion
 
 ```python
-# Initiate adding a document and wait for the process to finish
-response = client.add_document_and_poll(
-    index_id='idx_abc123',
-    document='new_document.docx',
-    polling_interval=20,  # Time in seconds between each poll
-    max_retries=10         # Maximum number of polling attempts
-)
-# Print the Document ID once addition is complete
-print(f"Document ID: {response.document_id}")
+try:
+    with open('document.pdf', 'rb') as file:
+        response, status = client.add_document_and_poll(
+            index_id='your_index_id',
+            document=file,               # Pass the binary file object
+            filename='document.pdf',     # Provide the filename
+            poll_interval=20,            # Time in seconds between each poll
+            max_retries=10               # Maximum number of polling attempts
+        )
+
+    document_id = getattr(status, 'document_id', None)
+
+    print("Document indexing completed")
+    print(f"Status Details: {status}")
+        
+except APIError as e:
+    print(f"An API error occurred while adding the document: {e}")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 ```
 
 **Explanation:**
 
 - **client.add_document_and_poll():** Combines document addition and polling into a single step.
-- **document='new_document.docx':** Specifies the document to add.
-- **polling_interval & max_retries:** Control the polling behavior.
+- **document='document.pdf':** Specifies the document to add.
+- **poll_interval & max_retries:** Control the polling behavior.
 
 **Output:**
 
@@ -366,12 +386,22 @@ Retrieve a list of all indices you have created. This is useful for managing and
 ##### Example: List All Indices
 
 ```python
-# Fetch all indices associated with your account
-indices = client.list_indices()
-
-# Iterate through each index and print its details
-for index in indices.data:
-    print(f"Index ID: {index.id} | Name: {index.name}")
+try:
+    indices = client.list_indexes()
+    if not indices:
+        print("No indices found.")
+    else:
+        for index in indices:
+            index_id = getattr(index, 'id', None)
+            if index_id:
+                print(f"Index ID: {index_id}")
+            else:
+                print("Encountered an index without an ID.")
+                
+except APIError as e:
+    print(f"An API error occurred while listing indexes: {e}")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 ```
 
 **Explanation:**
@@ -390,18 +420,22 @@ Retrieve all documents within a specific index. This helps you understand the co
 ##### Example: List All Documents in an Index
 
 ```python
-# Replace 'your_index_id' with your actual Index ID
-documents = client.get_documents('your_index_id')
-
-# Iterate through each document and print its details
-for doc in documents.data:
-    print(f"Document ID: {doc.id} | Filename: {doc.filename}")
+try:
+    documents = client.get_documents('your_index_id')
+    for doc in documents.data.documents:
+        print(f"Document ID: {doc.id}")
+        print(f"Created At: {doc.created_at}")
+        print(f"Updated At: {doc.updated_at}")
+        print(f"Index ID: {documents.data.index}")
+        print("---")
+except (APIError, Exception) as e:
+    print({'error': str(e)})
 ```
 
 **Explanation:**
 
 - **client.get_documents('your_index_id'):** Fetches all documents within the specified index.
-- **documents.data:** Contains the list of documents returned by the API.
+- **documents.data.documents:** Contains the list of documents returned by the API.
 
 **Output:**
 
