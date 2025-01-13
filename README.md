@@ -772,6 +772,13 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 
 The iQ Suite Platform supports a variety of document formats, ensuring flexibility in handling different types of data. Additionally, documents are automatically processed with Optical Character Recognition (OCR) when applicable, enabling the extraction of text from images or scanned documents.
 
+### Rate Limiting / Throttling
+All the functions are processed under the rate limiter. The allowed usage volume is capped under 
+```
+10 requests per minute to rag-create-index.
+50 requests per minute to rag-retrieve-index.
+```
+
 ### Supported Formats
 
 1. **PDF Files (.pdf):**
@@ -790,10 +797,7 @@ The iQ Suite Platform supports a variety of document formats, ensuring flexibili
 
 - **Ensure Proper Formatting:** Well-structured documents with clear headings, subheadings, and consistent formatting improve processing accuracy.
 - **Clear and Legible Text:** Especially important for scanned documents, as OCR accuracy depends on text clarity.
-- **Avoid Complex Layouts:** Extremely intricate layouts may pose challenges during text extraction.
-- **Password Management:** For password-protected PDFs, ensure you have the necessary permissions and provide the correct password during upload.
 
-> **💡 Tip:** *Review your documents for any sensitive information before uploading, especially when dealing with password-protected files.*
 
 ## Error Handling
 
