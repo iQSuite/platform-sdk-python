@@ -181,7 +181,7 @@ class IQSuiteClient:
                     files=files,
                 )
                 response_data = self._handle_response(response)
-                return TaskResponse(data=response_data["data"])
+                return TaskResponse(data=response_data)
 
             finally:
                 self.session.headers = original_headers
