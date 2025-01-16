@@ -302,7 +302,7 @@ class IQSuiteClient:
                 json={"index": index_id, "query": query},
             )
             data = self._handle_response(response)
-            return InstantRagQueryResponse(**data)
+            return (data)
         except Exception as e:
             raise APIError(f"Error in query_instant_rag: {str(e)}") from e
 
