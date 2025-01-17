@@ -50,7 +50,7 @@ Welcome to the **iQ Suite Python SDK**! This Software Development Kit (SDK) allo
     - [Update Webhook](#update-webhook)
     - [Delete Webhook](#delete-webhook)
   - [Rate Limiting and Request Throttling](#rate-limiting-and-request-throttling)
-- [Supported Documents & Max file size](#supported-documents-and-max-filesize)
+- [Supported Documents & Max file size](#supported-documents-and-max-file-size)
 - [Error Handling](#error-handling)
 - [Support](#support)
 
