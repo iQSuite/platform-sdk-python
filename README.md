@@ -777,7 +777,7 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 
 ## Supported Documents & Max File Size
 
-The iQ Suite Platform supports a variety of document formats, ensuring flexibility in handling different types of data. Additionally, documents are automatically processed with Optical Character Recognition (OCR) when applicable, enabling the extraction of text from images or scanned documents. The max file size is capped at 20 MB with support for PDF, Docx, PPT.
+The iQ Suite Platform supports a variety of document formats, ensuring flexibility in handling different types of data. Additionally, documents are automatically processed with Optical Character Recognition (OCR) when applicable, enabling the extraction of text from images or scanned documents. The  **max file size** is capped at  **20 MB** with support for PDF, Docx, PPT.
 
 # Rate Limiting and Request Throttling
 
