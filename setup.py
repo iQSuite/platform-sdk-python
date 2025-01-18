@@ -8,12 +8,12 @@ setup(
         "requests>=2.25.0",
         "pydantic>=2.0.0"
     ],
-    author="Blue Hex Software",
-    author_email="abhishek.choudhury@bluehexsoftware.com",
+    author="iQ Suite",
+    author_email="support@iqsuite.ai",
     description="Python SDK for IQSuite API",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/iqsuite-python",
+    url="https://github.com/iQSuite/platform-sdk-python",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
