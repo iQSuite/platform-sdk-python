@@ -31,7 +31,7 @@ class IQSuiteClient:
     ):
         self.api_key = api_key
         self.base_url = (
-            base_url or os.getenv("IQSUITE_BASE_URL") or "https://iqsuite.ai/api/v1"
+            base_url or "https://iqsuite.ai/api/v1"
         ).rstrip("/")
 
         self.session = requests.Session()
