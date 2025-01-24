@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Dict, List, Optional
 from datetime import datetime
 
@@ -8,8 +8,7 @@ class User(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class Index(BaseModel):
@@ -18,19 +17,19 @@ class Index(BaseModel):
     created_at: Optional[datetime] = None
     document_count: Optional[int] = None
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class Document(BaseModel):
     """Model for document information"""
 
     id: str
+    title: Optional[str] = None
+    content: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class DocumentListData(BaseModel):
@@ -38,9 +37,11 @@ class DocumentListData(BaseModel):
 
     documents: List[Document]
     index: str
+    total: int
+    page: int
+    per_page: int
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class DocumentListResponse(BaseModel):
@@ -48,16 +49,14 @@ class DocumentListResponse(BaseModel):
 
     data: DocumentListData
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class TaskStatus(BaseModel):
     status: str
     task_id: Optional[str] = None
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class TaskResponseData(BaseModel):
@@ -67,8 +66,7 @@ class TaskResponseData(BaseModel):
     task_id: str
     check_status: str
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class TaskResponse(BaseModel):
@@ -76,8 +74,7 @@ class TaskResponse(BaseModel):
 
     data: TaskResponseData
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class InstantRagResponse(BaseModel):
@@ -87,8 +84,7 @@ class InstantRagResponse(BaseModel):
     id: str
     query_url: str
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class InstantRagQueryData(BaseModel):
@@ -100,12 +96,15 @@ class InstantRagQueryData(BaseModel):
     credits_cost: float
     total_tokens: int
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
+
 
 class SourceDocument(BaseModel):
     id: str
     file_name: str
+
+    model_config = ConfigDict(extra="allow")
+
 
 class InstantRagQueryResponse(BaseModel):
     uuid: str
@@ -113,23 +112,22 @@ class InstantRagQueryResponse(BaseModel):
     answer: str
     source_documents: Optional[List[SourceDocument]] = []
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class Webhook(BaseModel):
     """Model for webhook information"""
 
-    id: str
+    id: int
     url: str
     name: str
     enabled: bool
-    secret: str
+    secret: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
+
 
 
 class WebhookListResponse(BaseModel):
@@ -137,15 +135,13 @@ class WebhookListResponse(BaseModel):
 
     data: List[Webhook]
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class WebhookResponse(BaseModel):
     webhook: Webhook
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class WebhookDeleteResponse(BaseModel):
@@ -153,5 +149,4 @@ class WebhookDeleteResponse(BaseModel):
 
     data: Dict[str, str]
 
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")

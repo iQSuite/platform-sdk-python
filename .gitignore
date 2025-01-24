@@ -1,3 +1,30 @@
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+
+# Project specific
 document.pdf
 test.py

@@ -255,15 +255,20 @@ class IQSuiteClient:
         except Exception as e:
             raise APIError(f"Error in get_task_status: {str(e)}") from e
 
-    def retrieve(self, index_id: str, query: str) -> Dict[str, Any]:
+    def retrieve(self, index_id: str, query: str, document_id: str = "") -> Dict[str, Any]:
         try:
             response = self.session.post(
                 f"{self.base_url}/index/retrieve",
-                json={"index": index_id, "query": query},
+                json={
+                    "index": index_id,
+                    "query": query,
+                    "document_id": document_id,
+                },
             )
             return self._handle_response(response)
         except Exception as e:
             raise APIError(f"Error in retrieve: {str(e)}") from e
+
 
     def search(self, index_id: str, query: str) -> Dict[str, Any]:
         try:
@@ -302,17 +307,20 @@ class IQSuiteClient:
                 json={"index": index_id, "query": query},
             )
             data = self._handle_response(response)
-            return (data)
+            return InstantRagQueryResponse(**data)
         except Exception as e:
             raise APIError(f"Error in query_instant_rag: {str(e)}") from e
 
+
     def list_webhooks(self) -> WebhookListResponse:
-        try:
-            response = self.session.get(f"{self.base_url}/webhooks")
-            data = self._handle_response(response)
-            return data
-        except Exception as e:
-            raise APIError(f"Error in list_webhooks: {str(e)}") from e
+       try:
+           response = self.session.get(f"{self.base_url}/webhooks")
+           data = self._handle_response(response)
+           return WebhookListResponse(data=data)
+       except Exception as e:
+           raise APIError(f"Error in list_webhooks: {str(e)}") from e
+
+
 
     def create_webhook(
         self, url: str, name: str, secret: str, enabled: str
@@ -327,11 +335,11 @@ class IQSuiteClient:
             }
             response = self.session.post(f"{self.base_url}/webhooks", json=payload)
             response_data = self._handle_response(response)
-            return response_data.get('webhook')
-
+            return WebhookResponse(**response_data)  # Correct mapping
         except Exception as e:
             logger.exception(f"Error in create_webhook: {str(e)}")
             raise APIError(f"Error in create_webhook: {str(e)}") from e
+
 
     def update_webhook(
         self, webhook_id: str, url: str, name: str, enabled: str
@@ -358,6 +366,7 @@ class IQSuiteClient:
                 f"{self.base_url}/webhooks/delete", json=payload
             )
             data = self._handle_response(response)
-            return data
+            return WebhookDeleteResponse(data=data)
         except Exception as e:
             raise APIError(f"Error in delete_webhook: {str(e)}") from e
+

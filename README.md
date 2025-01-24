@@ -50,7 +50,7 @@ Welcome to the **iQ Suite Python SDK**! This Software Development Kit (SDK) allo
     - [Update Webhook](#update-webhook)
     - [Delete Webhook](#delete-webhook)
   - [Rate Limiting and Request Throttling](#rate-limiting-and-request-throttling)
-- [Supported Documents & Max file size](#supported-documents-and-max-file-size)
+- [Supported Documents & Max File Size](#supported-documents-and-max-file-size)
 - [Error Handling](#error-handling)
 - [Support](#support)
 
@@ -252,7 +252,6 @@ Document-based RAG involves creating indices from your documents and performing 
 Creating an index allows the platform to process and understand your documents, enabling advanced search and retrieval capabilities.
 
 > **ℹ️ Information:** *Creating an index is an asynchronous operation. This means the process runs in the background, and you'll receive a task ID to monitor its progress.*
->
 
 > [!CAUTION]
 > To ensure optimal system performance and maintain service quality, create index function calls are subject to rate limiting controls ie, 10 requests per minute..*
@@ -486,7 +485,8 @@ try:
     # Send a natural language query to the specified index
     response = client.retrieve(
         index_id='your-index-id',
-        query="What are the main points discussed in the document?"
+        query="What are the main points discussed in the document?",
+        document_id="your-document-id" # Optional, you can filter and retrieve results from the specific document.
     )
     # Print the response from the platform
     print(f"Response: {response}")
@@ -499,6 +499,7 @@ except APIError as e:
 
 - **index_id='your-index-id':** Replace with your actual Index ID.
 - **query="...":** The natural language question you want to ask.
+- **document_id="...":** The Document ID to filter and retrieve results from the specific document.
 - **client.retrieve():** Sends the query to the platform and retrieves the response.
 
 **Output:**
