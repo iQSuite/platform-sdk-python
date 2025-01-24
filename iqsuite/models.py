@@ -107,7 +107,7 @@ class InstantRagQueryResponse(BaseModel):
     uuid: str
     total_tokens: int
     retrieval_response: str
-    credits_cost: int
+    credits_cost: float
     query: str
 
     model_config = ConfigDict(extra="allow")
