@@ -680,13 +680,8 @@ Retrieve a list of all webhooks you have set up. This helps you manage and revie
 ```python
 try:
     webhooks = client.list_webhooks()
-    print("\n=== Webhooks List ===")
-    print(f"{'ID':<6} {'Name':<30} {'URL':<40} {'Status':<10} {'Created At'}")
-    print("-" * 96)
-    
     for webhook in webhooks:
-        status = "Enabled" if webhook['enabled'] else "Disabled"
-        print(f"{webhook['id']:<6} {webhook['name']:<30} {webhook['url']:<40} {status:<10} {webhook['created_at']}")
+        print(webhook)
 
 except Exception as e:
     print(f"Error getting webhooks: {str(e)}")
