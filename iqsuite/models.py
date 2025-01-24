@@ -37,9 +37,6 @@ class DocumentListData(BaseModel):
 
     documents: List[Document]
     index: str
-    total: int
-    page: int
-    per_page: int
 
     model_config = ConfigDict(extra="allow")
 
@@ -109,8 +106,9 @@ class SourceDocument(BaseModel):
 class InstantRagQueryResponse(BaseModel):
     uuid: str
     total_tokens: int
-    answer: str
-    source_documents: Optional[List[SourceDocument]] = []
+    retrieval_response: str
+    credits_cost: int
+    query: str
 
     model_config = ConfigDict(extra="allow")
 
@@ -119,7 +117,6 @@ class Webhook(BaseModel):
     """Model for webhook information"""
 
     id: int
-    url: str
     name: str
     enabled: bool
     secret: Optional[str] = None
