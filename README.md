@@ -49,6 +49,7 @@ Welcome to the **iQ Suite Python SDK**! This Software Development Kit (SDK) allo
     - [List Webhooks](#list-webhooks)
     - [Update Webhook](#update-webhook)
     - [Delete Webhook](#delete-webhook)
+  - [Tokenizer](#tokenizer)
   - [Rate Limiting and Request Throttling](#rate-limiting-and-request-throttling)
 - [Supported Documents & Max File Size](#supported-documents-and-max-file-size)
 - [Error Handling](#error-handling)
@@ -770,6 +771,20 @@ When specific events occur, the iQ Suite Platform sends POST requests to your we
 - **status:** The current status of the task (e.g., `completed`, `failed`).
 
 > **🔒 Important:** *Always verify webhook signatures in production environments to ensure that incoming requests are genuinely from the iQ Suite Platform and not malicious actors.*
+
+## Tokenizer
+The iQ Suite Platform offers a free and unlimited usage of the tokenizer model that you can use to calculate and estimate the token expenditure on the given piece of text
+
+>**NOTE:** The below tokenizer method is rate limitted to 50 requests per minute.
+
+```python
+try:
+    response = client.tokenizer(text="hello world")
+    print(response.token_count)
+except APIError as e:
+    # Handle any API-related errors
+    print(f"Error tokenizing text: {e}")
+```
 
 ## Supported Documents & Max File Size
 

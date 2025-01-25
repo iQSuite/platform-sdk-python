@@ -8,6 +8,7 @@ from .exceptions import AuthenticationError, APIError
 from .models import (
     DocumentListResponse,
     TaskResponse,
+    TokenizerResponse,
     User,
     Index,
     TaskStatus,
@@ -30,9 +31,7 @@ class IQSuiteClient:
         base_url: str = None,
     ):
         self.api_key = api_key
-        self.base_url = (
-            base_url or "https://iqsuite.ai/api/v1"
-        ).rstrip("/")
+        self.base_url = (base_url or "https://iqsuite.ai/api/v1").rstrip("/")
 
         self.session = requests.Session()
         self.session.headers.update(
@@ -255,7 +254,9 @@ class IQSuiteClient:
         except Exception as e:
             raise APIError(f"Error in get_task_status: {str(e)}") from e
 
-    def retrieve(self, index_id: str, query: str, document_id: str = "") -> Dict[str, Any]:
+    def retrieve(
+        self, index_id: str, query: str, document_id: str = ""
+    ) -> Dict[str, Any]:
         try:
             response = self.session.post(
                 f"{self.base_url}/index/retrieve",
@@ -268,7 +269,6 @@ class IQSuiteClient:
             return self._handle_response(response)
         except Exception as e:
             raise APIError(f"Error in retrieve: {str(e)}") from e
-
 
     def search(self, index_id: str, query: str) -> Dict[str, Any]:
         try:
@@ -311,16 +311,13 @@ class IQSuiteClient:
         except Exception as e:
             raise APIError(f"Error in query_instant_rag: {str(e)}") from e
 
-
     def list_webhooks(self) -> WebhookListResponse:
-       try:
-           response = self.session.get(f"{self.base_url}/webhooks")
-           data = self._handle_response(response)
-           return WebhookListResponse(data=data)
-       except Exception as e:
-           raise APIError(f"Error in list_webhooks: {str(e)}") from e
-
-
+        try:
+            response = self.session.get(f"{self.base_url}/webhooks")
+            data = self._handle_response(response)
+            return WebhookListResponse(data=data)
+        except Exception as e:
+            raise APIError(f"Error in list_webhooks: {str(e)}") from e
 
     def create_webhook(
         self, url: str, name: str, secret: str, enabled: str
@@ -339,7 +336,6 @@ class IQSuiteClient:
         except Exception as e:
             logger.exception(f"Error in create_webhook: {str(e)}")
             raise APIError(f"Error in create_webhook: {str(e)}") from e
-
 
     def update_webhook(
         self, webhook_id: str, url: str, name: str, enabled: str
@@ -370,3 +366,11 @@ class IQSuiteClient:
         except Exception as e:
             raise APIError(f"Error in delete_webhook: {str(e)}") from e
 
+    def tokenizer(self, text: str) -> TokenizerResponse:
+        try:
+            payload = {"text": text}
+            response = self.session.post(f"{self.base_url}/tokenizer", json=payload)
+            data = self._handle_response(response)
+            return TokenizerResponse(data=data)
+        except Exception as e:
+            raise APIError(f"Error in tokenizing: {str(e)}") from e
