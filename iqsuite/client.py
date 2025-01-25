@@ -8,7 +8,6 @@ from .exceptions import AuthenticationError, APIError
 from .models import (
     DocumentListResponse,
     TaskResponse,
-    TokenizerResponse,
     User,
     Index,
     TaskStatus,
@@ -366,11 +365,11 @@ class IQSuiteClient:
         except Exception as e:
             raise APIError(f"Error in delete_webhook: {str(e)}") from e
 
-    def tokenizer(self, text: str) -> TokenizerResponse:
+    def tokenizer(self, text: str):
         try:
             payload = {"text": text}
             response = self.session.post(f"{self.base_url}/tokenizer", json=payload)
             data = self._handle_response(response)
-            return TokenizerResponse(data=data.data)
+            return data
         except Exception as e:
             raise APIError(f"Error in tokenizing: {str(e)}") from e

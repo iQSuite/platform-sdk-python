@@ -147,8 +147,3 @@ class WebhookDeleteResponse(BaseModel):
     data: Dict[str, str]
 
     model_config = ConfigDict(extra="allow")
-
-
-class TokenizerResponse(BaseModel):
-    tokens_count: int
-    model_config = ConfigDict(extra="allow")

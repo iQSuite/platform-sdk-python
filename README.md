@@ -778,9 +778,9 @@ The iQ Suite Platform offers a free and unlimited usage of the tokenizer model t
 >**NOTE:** The below tokenizer method is rate limitted to 50 requests per minute.
 
 ```python
-try:
+try: 
     response = client.tokenizer(text="hello world")
-    print(response.token_count)
+    print(response.get("tokens_count"))
 except APIError as e:
     # Handle any API-related errors
     print(f"Error tokenizing text: {e}")
