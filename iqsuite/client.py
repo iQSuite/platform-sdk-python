@@ -371,6 +371,6 @@ class IQSuiteClient:
             payload = {"text": text}
             response = self.session.post(f"{self.base_url}/tokenizer", json=payload)
             data = self._handle_response(response)
-            return TokenizerResponse(data=data)
+            return TokenizerResponse(data=data.data)
         except Exception as e:
             raise APIError(f"Error in tokenizing: {str(e)}") from e
