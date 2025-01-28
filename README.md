@@ -905,7 +905,7 @@ Comprehensive documentation is available to guide you through every aspect of th
 If you encounter issues or have questions, reach out through the following channels:
 
 - 📧 [Email Support](mailto:support@iqsuite.ai): Contact our support team directly via email for personalized assistance.
-- 💬 [Discord Community](https://discord.gg/iqsuite): Join our Discord server to interact with other users and developers, share experiences, and get real-time help.
+- 💬 [Discord Community](https://discord.gg/JWcdjkuDqR): Join our Discord server to interact with other users and developers, share experiences, and get real-time help.
 - 🐛 [GitHub Issues](https://github.com/iqsuite/iqsuite-python/issues): Report bugs or request new features by opening an issue on our GitHub repository.
 
 ### Best Practices
