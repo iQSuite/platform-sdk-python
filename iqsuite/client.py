@@ -257,13 +257,17 @@ class IQSuiteClient:
         self, index_id: str, query: str, document_id: str = ""
     ) -> Dict[str, Any]:
         try:
+            payload = {
+                "index": index_id,
+                "query": query,
+            }
+
+            if document_id:
+                payload["document_id"] = document_id
+
             response = self.session.post(
                 f"{self.base_url}/index/retrieve",
-                json={
-                    "index": index_id,
-                    "query": query,
-                    "document_id": document_id,
-                },
+                json=payload,
             )
             return self._handle_response(response)
         except Exception as e:
